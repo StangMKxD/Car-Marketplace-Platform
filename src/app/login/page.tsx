@@ -5,9 +5,9 @@ import { useState } from "react";
 import { toast } from "react-toastify";
 import Link from "next/link";
 import { useAuth } from "@/contexts/AuthContext";
-import { loginForm } from "@/api/car";
+import { loginForm } from "@/api/auth";
 
-const Page = () => {
+const LoginPage = () => {
   const { setIsLoggedIn, setRole } = useAuth();
   const router = useRouter();
   const [form, setForm] = useState({
@@ -25,9 +25,8 @@ const Page = () => {
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     try {
-      const res = await loginForm(form); 
+      const res = await loginForm(form);
 
-      //  ตรวจสอบ token และ role 
       const token = res.token;
       const role = res.user.role;
       if (token && role) {
@@ -69,7 +68,7 @@ const Page = () => {
           />
           <button
             type="submit"
-            className="w-full bg-blue-600 text-white p-2 rounded hover:bg-blue-700"
+            className="w-full bg-blue-600 text-white p-2 rounded hover:bg-blue-700 cursor-pointer"
           >
             เข้าสู่ระบบ
           </button>
@@ -89,4 +88,4 @@ const Page = () => {
   );
 };
 
-export default Page;
+export default LoginPage;

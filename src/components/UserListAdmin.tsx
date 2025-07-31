@@ -1,5 +1,5 @@
 import type { Usertype } from "../types";
-import { removeUser } from "@/api/car";
+import { removeUser } from "@/api/admin";
 import { toast } from "react-toastify";
 import { CiCircleRemove } from "react-icons/ci";
 import Swal from "sweetalert2";
@@ -23,7 +23,11 @@ const UserListAdmin = ({ user, onDelete }: userProps) => {
       title: `ยืนยันการลบผู้ใช้`,
       html: (
         <span>
-          ต้องการลบผู้ใช้ <b>{user.name} {user.surname}</b> หรือไม่?
+          ต้องการลบผู้ใช้{" "}
+          <b>
+            {user.name} {user.surname}
+          </b>{" "}
+          หรือไม่?
         </span>
       ),
       icon: "warning",
@@ -56,11 +60,21 @@ const UserListAdmin = ({ user, onDelete }: userProps) => {
   return (
     <div className="flex border p-2 rounded shadow mt-2">
       <div className="flex-1">
-        <p><b>Name:</b> {user.name}</p>
-        <p><b>Surname:</b> {user.surname}</p>
-        <p><b>Email:</b> {user.email}</p>
-        <p><b>Phone:</b> {user.phone}</p>
-        <p><b>Role:</b> {user.role}</p>
+        <p>
+          <b>Name:</b> {user.name}
+        </p>
+        <p>
+          <b>Surname:</b> {user.surname}
+        </p>
+        <p>
+          <b>Email:</b> {user.email}
+        </p>
+        <p>
+          <b>Phone:</b> {user.phone}
+        </p>
+        <p>
+          <b>Role:</b> {user.role}
+        </p>
       </div>
       <div>
         {user.role !== "admin" && (

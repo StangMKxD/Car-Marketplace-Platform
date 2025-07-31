@@ -1,6 +1,6 @@
-// contexts/AuthContext.tsx
-"use client";
-import { createContext, useContext, useEffect, useState } from "react";
+"use client"
+
+import { createContext, useContext, useEffect, useState } from "react"
 
 interface AuthContextType {
   isLoggedIn: boolean;
@@ -17,16 +17,16 @@ const AuthContext = createContext<AuthContextType>({
 });
 
 export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
-  const [isLoggedIn, setIsLoggedIn] = useState<boolean>(false);
-  const [role, setRole] = useState<string | null>(null);
+  const [isLoggedIn, setIsLoggedIn] = useState<boolean>(false)
+  const [role, setRole] = useState<string | null>(null)
 
   useEffect(() => {
-    const token = localStorage.getItem("token");
-    const storedRole = localStorage.getItem("role");
+    const token = localStorage.getItem("token")
+    const storedRole = localStorage.getItem("role")
 
-    if (token) setIsLoggedIn(true);
-    if (storedRole) setRole(storedRole);
-  }, []);
+    if (token) setIsLoggedIn(true)
+    if (storedRole) setRole(storedRole)
+  }, [])
 
   return (
     <AuthContext.Provider value={{ isLoggedIn, setIsLoggedIn, role, setRole }}>
@@ -35,4 +35,4 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   );
 };
 
-export const useAuth = () => useContext(AuthContext);
+export const useAuth = () => useContext(AuthContext)

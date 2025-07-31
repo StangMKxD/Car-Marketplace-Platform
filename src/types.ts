@@ -21,10 +21,16 @@ export type Usertype = {
   role?: string
 }
 
-// export type UserProfileUpdate = {
-//   name: string
-//   surname: string
-//   email: string
-//   phone: string
-//   password?: string
-// }
+export type StatusType = "PENDING" | "APPROVED" | "REJECTED";
+
+export type BookingAdminType = BookingType & {
+  createdAt: string;
+};
+
+export type BookingType = {
+  id: number;
+  date: Date;
+  status: StatusType;
+  car: Cartype;
+  user: Usertype;
+};

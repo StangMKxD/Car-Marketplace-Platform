@@ -1,12 +1,13 @@
 "use client";
 
-import { updateProfile, getFavorites, removeFavorite } from "../api/car";
+import { updateProfile, getFavorites, removeFavorite, getUserBooking } from "@/api/user";
 import { Cartype, Usertype } from "@/types";
 import { useEffect, useState } from "react";
 import { toast, ToastContainer } from "react-toastify";
 import { MdDone, MdClose } from "react-icons/md";
 import { FaRegEdit } from "react-icons/fa";
 import CarList from "@/components/CarList";
+import BookingList from "./BookingList";
 
 type ListUserProps = {
   item: Usertype;
@@ -16,10 +17,10 @@ type ListUserProps = {
 const ProfileList = ({ item, loadData }: ListUserProps) => {
   const [favorites, setFavorites] = useState<Cartype[]>([]);
   const [loading, setLoading] = useState(true);
-
   const [isEdit, setIsEdit] = useState(false);
-
   const [formEdit, setFormEdit] = useState<Usertype>({ ...item });
+  const [bookings, setBookings] = useState([]);
+
 
   const fields = [
     { name: "name", label: "ชื่อ", type: "text" },
@@ -60,12 +61,17 @@ const ProfileList = ({ item, loadData }: ListUserProps) => {
     }
   };
 
+  const loadBookings = async () => {
+    const res = await getUserBooking();
+    setBookings(res);
+  };
+
   useEffect(() => {
-    setFormEdit({ ...item }); // รีเซ็ตข้อมูลเมื่อ item เปลี่ยน
+    setFormEdit({ ...item }); 
   }, [item]);
 
   useEffect(() => {
-    const fetchFavorites = async () => {
+    const loadFavorites = async () => {
       try {
         const favs = await getFavorites();
         setFavorites(favs);
@@ -76,20 +82,20 @@ const ProfileList = ({ item, loadData }: ListUserProps) => {
         setLoading(false);
       }
     };
-
-    fetchFavorites();
+    loadBookings()
+    loadFavorites();
   }, [item.id]);
 
   const handleRemoveFavorite = async (carId: number) => {
     try {
-      await removeFavorite(carId)
-      setFavorites((prev) => prev.filter((car) => car.id !== carId))
-      toast.success("ลบจากรายการโปรดสำเร็จ")
+      await removeFavorite(carId);
+      setFavorites((prev) => prev.filter((car) => car.id !== carId));
+      toast.success("ลบจากรายการโปรดสำเร็จ");
     } catch (error) {
-      console.error(error)
-      toast.error("ลบไม่สำเร็จ")
+      console.error(error);
+      toast.error("ลบไม่สำเร็จ");
     }
-  }
+  };
 
   return (
     <>
@@ -124,8 +130,7 @@ const ProfileList = ({ item, loadData }: ListUserProps) => {
                 />
               ) : (
                 <span className="flex-1">
-                  <strong>{field.label}:</strong>{" "}
-                  {(item as any)[field.name]}
+                  <strong>{field.label}:</strong> {(item as any)[field.name]}
                 </span>
               )}
             </div>
@@ -163,11 +168,22 @@ const ProfileList = ({ item, loadData }: ListUserProps) => {
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 text-black">
             {favorites.map((car) => (
-              <CarList key={car.id} item={car} isLoggedIn={true} initialIsFavorite={true} onFavoriteChange={(carId, isFav) => {
-                if (!isFav) handleRemoveFavorite(carId) }} />
+              <CarList
+                key={car.id}
+                item={car}
+                isLoggedIn={true}
+                initialIsFavorite={true}
+                onFavoriteChange={(carId, isFav) => {
+                  if (!isFav) handleRemoveFavorite(carId);
+                }}
+              />
             ))}
           </div>
         )}
+        <div className="p-4">
+      <h2 className="text-xl font-bold mb-4">รายการจองของฉัน</h2>
+      <BookingList bookings={bookings} refreshBookings={loadBookings} />
+    </div>
       </div>
     </>
   );

@@ -2,14 +2,15 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { Cartype, Usertype } from "@/types";
-import { toast, ToastContainer } from "react-toastify";
-import { getData, userData } from "@/api/car";
+import { BookingType, Cartype, Usertype } from "@/types";
+import { toast } from "react-toastify";
+import { addCar, getBookingList, userData } from "@/api/admin";
 import CarListAdmin from "@/components/CarListAdmin";
 import UserListAdmin from "@/components/UserListAdmin";
-import axios from "axios";
+import { getData } from "@/api/user";
+import BookingList from "@/components/BookingList";
 
-const Page = () => {
+const AdminPage = () => {
   const router = useRouter();
 
   const [formData, setFormData] = useState<Cartype>({
@@ -28,26 +29,41 @@ const Page = () => {
   const [selectedFiles, setSelectedFiles] = useState<FileList | null>(null);
   const [cars, setCars] = useState<Cartype[]>([]);
   const [showForm, setShowForm] = useState(false);
-  const [activeTab, setActiveTab] = useState<"cars" | "users">("cars");
+  const [activeTab, setActiveTab] = useState<"cars" | "users" | "bookinglist">(
+    "cars"
+  );
   const [users, setUsers] = useState<Usertype[]>([]);
+  const [bookings, setBookings] = useState<BookingType[]>([]);
 
   // โหลดข้อมูลรถ
   const loadData = async () => {
     try {
-      const data = await getData();
-      setCars(data);
+      const res = await getData();
+      setCars(res);
     } catch (error) {
       console.error("โหลดข้อมูลรถไม่สำเร็จ:", error);
+      toast.error("โหลดข้อมูลรถไม่สำเร็จ");
     }
   };
 
   // โหลดข้อมูลผู้ใช้
   const loadUsers = async () => {
     try {
-      const data = await userData();
-      setUsers(data.user || []);
+      const res = await userData();
+      setUsers(res.user || []);
     } catch (error) {
       console.error("โหลดข้อมูลผู้ใช้ไม่สำเร็จ:", error);
+      toast.error("โหลดข้อมูลผู้ใช้ไม่สำเร็จ");
+    }
+  };
+
+  const loadBookings = async () => {
+    try {
+      const res = await getBookingList();
+      setBookings(res);
+    } catch (error) {
+      console.error("โหลดข้อมูลการจองไม่สำเร็จ", error);
+      toast.error("โหลดข้อมูลการจองไม่สำเร็จ");
     }
   };
 
@@ -58,6 +74,7 @@ const Page = () => {
     } else {
       loadData();
       loadUsers();
+      loadBookings();
     }
   }, [router]);
 
@@ -105,12 +122,7 @@ const Page = () => {
 
     try {
       const token = localStorage.getItem("token") || "";
-      const res = await axios.post("http://localhost:5000/api/cars", formDataToSend, {
-        headers: {
-          "Content-Type": "multipart/form-data",
-          Authorization: `Bearer ${token}`,
-        },
-      });
+      const res = await addCar(formDataToSend, token);
 
       toast.success(`เพิ่มรถ ${res.data.car.brand} สำเร็จ`);
       setFormData({
@@ -146,8 +158,8 @@ const Page = () => {
   ];
 
   const handleDeleteUser = (id: number) => {
-  setUsers((prevUsers) => prevUsers.filter(user => user.id !== id));
-};
+    setUsers((prevUsers) => prevUsers.filter((user) => user.id !== id));
+  };
 
   return (
     <div className="p-4">
@@ -156,18 +168,34 @@ const Page = () => {
         <button
           onClick={() => setActiveTab("cars")}
           className={`px-4 py-2 rounded  ${
-            activeTab === "cars" ? "bg-blue-600 text-white " : "bg-gray-200 cursor-pointer"
+            activeTab === "cars"
+              ? "bg-blue-600 text-white "
+              : "bg-gray-200 cursor-pointer"
           }`}
         >
           รถยนต์ทั้งหมด
         </button>
+
         <button
           onClick={() => setActiveTab("users")}
           className={`px-4 py-2 rounded  ${
-            activeTab === "users" ? "bg-blue-600 text-white" : "bg-gray-200 cursor-pointer"
+            activeTab === "users"
+              ? "bg-blue-600 text-white"
+              : "bg-gray-200 cursor-pointer"
           }`}
         >
           ผู้ใช้งาน
+        </button>
+
+        <button
+          onClick={() => setActiveTab("bookinglist")}
+          className={`px-4 py-2 rounded  ${
+            activeTab === "bookinglist"
+              ? "bg-blue-600 text-white"
+              : "bg-gray-200 cursor-pointer"
+          }`}
+        >
+          รายการจอง
         </button>
       </div>
 
@@ -228,13 +256,23 @@ const Page = () => {
         <div className="text-black ">
           <h2 className="text-3xl font-bold text-center my-5">รายชื่อสมาชิก</h2>
           {users.map((user, index) => (
-  <UserListAdmin key={index} user={user} onDelete={handleDeleteUser} />
-))}
+            <UserListAdmin
+              key={index}
+              user={user}
+              onDelete={handleDeleteUser}
+            />
+          ))}
         </div>
       )}
-      <ToastContainer position="top-right" />
+
+      {activeTab === "bookinglist" && (
+        <div className="p-4">
+          <h2 className="text-xl text-center">รายการจองที่รออนุมัติ</h2>
+          <BookingList bookings={bookings} refreshBookings={loadBookings} />
+        </div>
+      )}
     </div>
   );
 };
 
-export default Page;
+export default AdminPage;

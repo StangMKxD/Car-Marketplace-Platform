@@ -5,7 +5,7 @@ import { toast } from "react-toastify";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import "react-toastify/dist/ReactToastify.css";
-import { registerUser } from "@/api/car";
+import { registerUser } from "@/api/auth";
 
 const fields = [
   { name: "name", placeholder: "ชื่อ", type: "text" },
@@ -16,7 +16,7 @@ const fields = [
   { name: "phone", placeholder: "เบอร์โทร", type: "tel" },
 ];
 
-const Page = () => {
+const RegisterPage = () => {
   const router = useRouter();
 
   const [form, setForm] = useState({
@@ -118,4 +118,4 @@ const Page = () => {
   );
 };
 
-export default Page;
+export default RegisterPage;
