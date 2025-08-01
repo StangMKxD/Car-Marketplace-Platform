@@ -1,12 +1,24 @@
+"use client";
+
 import { getCarById } from "@/api/user";
+import { useEffect, useState } from "react";
+import { useParams } from "next/navigation";
 
-type Props = {
-  params: { id: string };
-};
+const InfoCarPage = () => {
+  const params = useParams();
+  const [car, setCar] = useState<any>(null);
 
-const InfoCarPage = async ({ params }: Props) => {
-  const car = await getCarById(Number(params.id));
+  useEffect(() => {
+    const fetchData = async () => {
+      if (params?.id) {
+        const data = await getCarById(Number(params.id));
+        setCar(data);
+      }
+    };
+    fetchData();
+  }, [params?.id]);
 
+  if (!car) return <div>Loading...</div>;
   return (
     <>
       <div className="w-full flex overflow-hidden">
@@ -21,7 +33,7 @@ const InfoCarPage = async ({ params }: Props) => {
                     className="w-full aspect-video overflow-hidden rounded-lg border"
                   >
                     <img
-                      src={img.url}
+                      src={`${process.env.NEXT_PUBLIC_BACKEND_URL}${img.url}`}
                       alt={`Image ${img.id}`}
                       className="w-full h-full object-cover"
                     />

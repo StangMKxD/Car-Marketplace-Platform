@@ -48,6 +48,8 @@ const BookingList = ({ bookings, refreshBookings }: Props) => {
             className="flex justify-between items-center border p-4 rounded shadow my-3"
           >
             <div>
+              <div>
+
               <p>
                 <b>ชื่อ:</b> {booking.user?.name} {booking.user?.surname}
               </p>
@@ -62,16 +64,29 @@ const BookingList = ({ bookings, refreshBookings }: Props) => {
                 <span
                   className={`ml-1 font-bold ${
                     booking.status === "APPROVED"
-                      ? "text-green-600"
-                      : booking.status === "REJECTED"
-                      ? "text-red-500"
-                      : "text-yellow-500"
+                    ? "text-green-600"
+                    : booking.status === "REJECTED"
+                    ? "text-red-500"
+                    : "text-yellow-500"
                   }`}
-                >
+                  >
                   {booking.status}
                 </span>
               </p>
+                  </div>
+
+              
             </div>
+            <div>
+              {["PENDING", "REJECTED"].includes(booking.status) && (
+              <button
+                onClick={() => handleDelete(booking.id)}
+                className="bg-red-500 text-white px-3 py-1 rounded hover:bg-red-600 ml-2"
+              >
+                ลบคำขอ
+              </button>
+            )}
+                </div>
 
             {/* ปุ่มอนุมัติ/ปฏิเสธสำหรับ ADMIN และสถานะ PENDING */}
             {role === "ADMIN" && booking.status === "PENDING" && (

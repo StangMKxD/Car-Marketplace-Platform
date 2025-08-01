@@ -91,21 +91,14 @@ export const removeBookingList = async (id: number) => {
   return res.data
 }
 
-// เพิ่มรายการเปรียบเทียบรถยนต์
-export const addCompare = async (carAId: number, carBId: number) => {
-  const res = await api.post("/user/comparecar", { carAId, carBId}, getAuthHeader())
-  console.log("Sending carAId, carBId", carAId, carBId);
-  return res.data
-}
-
-// ลบรายการเปรียบเทียบรถยนต์ 
-export const removeCompare = async (id: number) => {
-  const res = await api.delete(`/user/comparecar/${id}`, getAuthHeader())
-  return res.data
-}
-
-// ดูรายการเปรียบเทียบรถยนต์
+// ดูการเปรียบเทียบรถ
 export const getCompareUser = async () => {
   const res = await api.get("/user/comparecar", getAuthHeader())
+  return res.data
+}
+
+// toggle เปรียบเทีนยรถ
+export const toggleCompare = async (carId: number) => {
+  const res = await api.post("/user/comparecar", { carId }, getAuthHeader())
   return res.data
 }

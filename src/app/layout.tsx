@@ -6,6 +6,8 @@ import Nav from "@/components/Nav";
 import { AuthProvider } from "@/contexts/AuthContext";
 import { ToastContainer } from "react-toastify";
 import 'react-toastify/dist/ReactToastify.css';
+import { CompareProvider } from "@/contexts/CompareContext";
+
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -34,7 +36,6 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body
-      
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
         <ToastContainer
@@ -48,9 +49,14 @@ export default function RootLayout({
         pauseOnFocusLoss
         style={{ zIndex: 9999 }}
       />
+
         <AuthProvider>
-        <Nav />
+      <CompareProvider>
+
+        <Nav/>
         {children}
+      </CompareProvider>
+    
         </AuthProvider>
       </body>
     </html>

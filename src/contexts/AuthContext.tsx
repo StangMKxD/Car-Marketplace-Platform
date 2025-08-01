@@ -2,6 +2,7 @@
 
 import { createContext, useContext, useEffect, useState } from "react"
 
+
 interface AuthContextType {
   isLoggedIn: boolean;
   setIsLoggedIn: (value: boolean) => void;
@@ -36,3 +37,4 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 };
 
 export const useAuth = () => useContext(AuthContext)
+

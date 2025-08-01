@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { FaHeart } from "react-icons/fa";
 import { toast } from "react-toastify";
+import CompareButton from "./CompareButton";
 
 type ListProps = {
   item: Cartype;
@@ -79,7 +80,7 @@ const CarList = ({
     try {
       const token = localStorage.getItem("token");
       if (!token) {
-        toast.error("กรุณาเข้าสู่ระบบก่อนจอง");
+        toast.error("กรุณาเข้าสู่ระบบก่อน");
         return;
       }
 
@@ -101,13 +102,13 @@ const CarList = ({
   return (
     <>
       <div className="w-full flex overflow-hidden">
-        <div className="flex-1 mx-2 my-2 h-[600px] bg-white rounded-xl p-4 shadow border border-[#dbdbdb] flex flex-col justify-between">
+        <div className="flex-1 mx-2 my-2 h-[500px] bg-white rounded-xl p-4 shadow border border-[#dbdbdb] flex flex-col justify-between">
           {/* ส่วนบน */}
           <div>
             <div className="w-full p-2 h-[300px] overflow-hidden rounded-lg border mx-auto border-gray-300">
-              {item.imageUrl ? (
+              {item.images ? (
                 <img
-                  src={item.imageUrl}
+                  src={`${process.env.NEXT_PUBLIC_BACKEND_URL}${item.images[0].url}`}
                   alt={item.model}
                   className="object-cover w-full h-full"
                 />
@@ -133,9 +134,7 @@ const CarList = ({
               </div>
             </div>
 
-            <div className="mt-4">
-              <p className="whitespace-pre-wrap break-words">{item.detail}</p>
-            </div>
+            
           </div>
 
           {/* ปุ่มล่าง */}
@@ -152,24 +151,9 @@ const CarList = ({
             </button>
 
             <div className="flex space-x-2">
-              {onToggleCompare && (
-                <button
-                  onClick={() => {
-                    if (!isLoggedIn) {
-                      toast.error("กรุณาเข้าสู่ระบบก่อน");
-                      return;
-                    }
-                    onToggleCompare(item.id);
-                  }}
-                  className={`px-3 py-2 rounded cursor-pointer ${
-                    isCompareSelected
-                      ? "bg-red-500 text-white"
-                      : "bg-blue-500 text-white"
-                  }`}
-                >
-                  {isCompareSelected ? "ยกเลิก" : "เปรียบเทียบ"}
-                </button>
-              )}
+              
+
+              <CompareButton car={item} />
 
               <button
                 onClick={handleOpenBookingForm}

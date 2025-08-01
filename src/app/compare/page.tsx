@@ -1,149 +1,63 @@
 "use client";
-
-import { useEffect, useRef, useState } from "react";
-import { useSearchParams } from "next/navigation";
-import { Cartype } from "@/types";
-import { toast } from "react-toastify";
-import axios from "axios";
+import { useCompare } from "@/contexts/CompareContext";
 
 const ComparePage = () => {
-    const hasShownToast = useRef(false);
-  const searchParams = useSearchParams();
-  const carAId = searchParams.get("carA");
-  const carBId = searchParams.get("carB");
-
-  const [carA, setCarA] = useState<Cartype | null>(null);
-  const [carB, setCarB] = useState<Cartype | null>(null);
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    const fetchCars = async () => {
-      if (!carAId && !carBId) {
-        if (!hasShownToast.current) {
-          toast.error("กรุณาเลือกรถเพื่อเปรียบเทียบ");
-          hasShownToast.current = true; 
-        }
-        return;
-      }
-
-      setLoading(true);
-
-      try {
-        if (carAId) {
-          const resA = await axios.get(
-            `http://localhost:5000/api/cars/${carAId}`
-          );
-          setCarA(resA.data);
-        } else {
-          setCarA(null);
-        }
-
-        if (carBId) {
-          const resB = await axios.get(
-            `http://localhost:5000/api/cars/${carBId}`
-          );
-          setCarB(resB.data);
-        } else {
-          setCarB(null);
-        }
-      } catch (error) {
-        toast.error("เกิดข้อผิดพลาดในการโหลดข้อมูลรถ");
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchCars();
-  }, [carAId, carBId]);
-
-  // 🟢 ลบฝั่ง A
-  const handleRemoveA = () => {
-    setCarA(null);
-  };
-
-  // 🔵 ลบฝั่ง B
-  const handleRemoveB = () => {
-    setCarB(null);
-  };
-
-  if (loading)
-    return <div className="text-center py-10">กำลังโหลดข้อมูล...</div>;
-
+  const { carA, carB, toggle } = useCompare();
   return (
-    <div className="max-w-6xl mx-auto p-4">
-      <h1 className="text-2xl font-bold mb-6 text-center">เปรียบเทียบรถยนต์</h1>
-
-      <div className="grid grid-cols-3 gap-4 border-t border-b py-4 font-semibold text-center bg-gray-100">
-        <div>คุณสมบัติ</div>
-        <div>
-          {carA ? (
+    <div className="grid grid-cols-2 gap-4">
+      {[carA, carB].map((car, idx) => (
+        <div key={idx} className="border p-4 rounded">
+          {car ? (
             <>
-              {carA.brand} {carA.model}
-              <button
-                onClick={handleRemoveA}
-                className="ml-2 text-red-500 underline text-sm"
-              >
-                ลบออก
-              </button>
+              {car && car.images && car.images.length > 0 ? (
+                <img
+                  src={`${process.env.NEXT_PUBLIC_BACKEND_URL}${car.images[0].url}`}
+                  alt={`images of ${car.model}`}
+                  className="object-cover w-full h-[400px] rounded-2xl"
+                />
+              ) : (
+                <p>ไม่มีรูปภาพ</p>
+              )}
+              <div className="flex-1 space-y-2 mt-2">
+                <h2 className="text-xl font-bold">{car.model}</h2>
+                <p>
+                  <b>ยี่ห้อ :</b>
+                  {car.brand}
+                </p>
+                <p>
+                  <b>ปี :</b>
+                  {car.year}
+                </p>
+                <p>
+                  <b>ประเภทน้ำมัน :</b>
+                  {car.fuel}
+                </p>
+                <p>
+                  <b>ราคา :</b>
+                  {car.price.toLocaleString()} บาท
+                </p>
+                <p>
+                  <b>เกียร์ :</b>
+                  {car.transmission}
+                </p>
+                <p>
+                  <b>ประเภทรถ :</b>
+                  {car.type}
+                </p>
+                <button
+                  onClick={() => toggle(car)}
+                  className="bg-red-500 text-white rounded-md px-2 py-1 cursor-pointer "
+                >
+                  ลบออก
+                </button>
+              </div>
             </>
           ) : (
-            <span className="text-gray-400">รถคันที่ 1</span>
+            <p className="text-gray-400">ไม่มีข้อมูลรถยนต์</p>
           )}
         </div>
-        <div>
-          {carB ? (
-            <>
-              {carB.brand} {carB.model}
-              <button
-                onClick={handleRemoveB}
-                className="ml-2 text-red-500 underline text-sm"
-              >
-                ลบออก
-              </button>
-            </>
-          ) : (
-            <span className="text-gray-400">รถคันที่ 2</span>
-          )}
-        </div>
-      </div>
-
-      <div className="grid grid-cols-3 gap-4 py-4 text-center border-b">
-        <div>รูปภาพ</div>
-        <div>
-          {carA ? (
-            <img src={carA.imageUrl} className="mx-auto h-48 object-contain" />
-          ) : (
-            <div className="text-gray-400">ไม่มีข้อมูล</div>
-          )}
-        </div>
-        <div>
-          {carB ? (
-            <img src={carB.imageUrl} className="mx-auto h-48 object-contain" />
-          ) : (
-            <div className="text-gray-400">ไม่มีข้อมูล</div>
-          )}
-        </div>
-      </div>
-
-      <div className="grid grid-cols-3 gap-4 py-4 text-center border-b">
-        <div>ราคา</div>
-        <div>{carA ? `${carA.price.toLocaleString()} บาท` : "–"}</div>
-        <div>{carB ? `${carB.price.toLocaleString()} บาท` : "–"}</div>
-      </div>
-
-      <div className="grid grid-cols-3 gap-4 py-4 text-center border-b">
-        <div>ประเภทน้ำมัน</div>
-        <div>{carA?.fuel || "–"}</div>
-        <div>{carB?.fuel || "–"}</div>
-      </div>
-
-      <div className="grid grid-cols-3 gap-4 py-4 text-center border-b">
-        <div>รายละเอียด</div>
-        <div className="whitespace-pre-wrap">{carA?.detail || "–"}</div>
-        <div className="whitespace-pre-wrap">{carB?.detail || "–"}</div>
-      </div>
+      ))}
     </div>
   );
 };
-
 export default ComparePage;

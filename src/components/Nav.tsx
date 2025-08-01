@@ -4,10 +4,12 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "react-toastify";
+import { useCompare } from "@/contexts/CompareContext";
 
 const Navbar = () => {
   const router = useRouter();
   const { isLoggedIn, setIsLoggedIn, role, setRole } = useAuth();
+  const { count } = useCompare();
 
   const handleLogout = () => {
     localStorage.removeItem("token");
@@ -17,6 +19,7 @@ const Navbar = () => {
     toast.success("ออกจากระบบแล้ว");
     router.push("/");
   };
+
 
   return (
     <nav className="flex justify-between items-center p-4 bg-gray-100 shadow-md">
@@ -37,13 +40,17 @@ const Navbar = () => {
           </span>
         </Link>
 
-        {isLoggedIn ? (
-        <Link href="/compare"><span className="text-[18px] cursor-pointer hover:text-blue-600">เปรียบเทียบ</span></Link>
+         {isLoggedIn ? (
+        <Link href="/compare" className="text-[18px] cursor-pointer hover:text-blue-600">
+      <span>เปรียบเทียบ</span>
+      <span className="text-black  text-xs px-1">
+        ({count}/2)
+      </span>
+    </Link>
       ) : (
         ""
       )}
 
-        {/* ✅ โชว์ทันทีเมื่อ login ด้วย role ADMIN */}
         {role === "ADMIN" && (
           <Link href="/admin">
             <span className="text-[18px] cursor-pointer hover:text-blue-600">

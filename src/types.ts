@@ -6,7 +6,7 @@ export interface Cartype {
   fuel: string;
   price: number;
   transmission: string;
-  imageUrl: string;
+  images: { id: number; url: string; carId: number }[];
   detail: string;
   type: string;
 }

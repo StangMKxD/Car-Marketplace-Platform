@@ -140,9 +140,9 @@ const ListAdmin = ({ item, loadData }: ListProps) => {
           </div>
           {/* รูปภาพ */}
           <div className="w-full p-1 h-auto flex-shrink-0 overflow-hidden rounded-lg border mx-auto border-gray-300">
-            {item.imageUrl ? (
+            {item.images ? (
               <img
-                src={item.imageUrl}
+                src={`${process.env.NEXT_PUBLIC_BACKEND_URL}${item.images[0].url}`}
                 alt={item.model}
                 className="object-cover w-full h-full"
               />
