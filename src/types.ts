@@ -9,6 +9,8 @@ export interface Cartype {
   images: { id: number; url: string; carId: number }[];
   detail: string;
   type: string;
+  totalBookings?: number;
+  totalFavorites?: number;
 }
 
 export type Usertype = {
@@ -19,6 +21,7 @@ export type Usertype = {
   password?: string
   phone: string
   role?: string
+  emailVerified?: boolean;
 }
 
 export type StatusType = "PENDING" | "APPROVED" | "REJECTED";

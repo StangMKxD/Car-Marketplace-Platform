@@ -58,8 +58,8 @@ const UserListAdmin = ({ user, onDelete }: userProps) => {
   };
 
   return (
-    <div className="flex border p-2 rounded shadow mt-2">
-      <div className="flex-1">
+    <div className="flex border px-4 py-2 rounded shadow mx-auto mt-3 w-3/4">
+      <div className="flex-1 mx-2 my-2 w-full">
         <p>
           <b>Name:</b> {user.name}
         </p>

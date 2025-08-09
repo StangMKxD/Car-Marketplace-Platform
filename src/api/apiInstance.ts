@@ -1,9 +1,3 @@
-import axios from "axios";
-
-// api
-export const api = axios.create({
-  baseURL: `${process.env.NEXT_PUBLIC_BACKEND_URL}/api`,
-});
 
 export const getAuthHeader = () => {
   const token = localStorage.getItem("token")
@@ -11,7 +5,7 @@ export const getAuthHeader = () => {
   return {
     headers: {
       Authorization: `Bearer ${token}`,
-    },
-    withCredentials: true,
+    }
   }
 }
+

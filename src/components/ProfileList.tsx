@@ -1,9 +1,15 @@
 "use client";
 
-import { updateProfile, getFavorites, removeFavorite, getUserBooking } from "@/api/user";
+import {
+  updateProfile,
+  getFavorites,
+  removeFavorite,
+  getUserBooking,
+  sendVerifyEmail,
+} from "@/api/user";
 import { Cartype, Usertype } from "@/types";
 import { useEffect, useState } from "react";
-import { toast, ToastContainer } from "react-toastify";
+import { toast } from "react-toastify";
 import { MdDone, MdClose } from "react-icons/md";
 import { FaRegEdit } from "react-icons/fa";
 import CarList from "@/components/CarList";
@@ -20,7 +26,9 @@ const ProfileList = ({ item, loadData }: ListUserProps) => {
   const [isEdit, setIsEdit] = useState(false);
   const [formEdit, setFormEdit] = useState<Usertype>({ ...item });
   const [bookings, setBookings] = useState([]);
-
+  const [activeTab, setActiveTab] = useState<
+    "profile" | "editprofile" | "favoritecars" | "bookings"
+  >("profile");
 
   const fields = [
     { name: "name", label: "ชื่อ", type: "text" },
@@ -49,6 +57,19 @@ const ProfileList = ({ item, loadData }: ListUserProps) => {
     }));
   };
 
+  const handleSendVerifyEmail = async () => {
+  try {
+    await sendVerifyEmail();
+    toast.success("ส่งลิงก์ยืนยันอีเมลแล้ว กรุณาตรวจสอบกล่องจดหมาย");
+
+     await loadData();
+     
+  } catch (error) {
+    toast.error("ส่งลิงก์ยืนยันไม่สำเร็จ");
+    console.error(error);
+  }
+};
+
   const handleConfirm = async (id: number) => {
     try {
       await updateProfile(id, formEdit);
@@ -67,7 +88,7 @@ const ProfileList = ({ item, loadData }: ListUserProps) => {
   };
 
   useEffect(() => {
-    setFormEdit({ ...item }); 
+    setFormEdit({ ...item });
   }, [item]);
 
   useEffect(() => {
@@ -82,7 +103,7 @@ const ProfileList = ({ item, loadData }: ListUserProps) => {
         setLoading(false);
       }
     };
-    loadBookings()
+    loadBookings();
     loadFavorites();
   }, [item.id]);
 
@@ -99,10 +120,94 @@ const ProfileList = ({ item, loadData }: ListUserProps) => {
 
   return (
     <>
-      <div className="flex overflow-hidden">
-        <div className="flex-1 mx-2 my-2 bg-white h-auto rounded-xl p-4 shadow w-full border border-[#dbdbdb] space-y-4">
-          <div className="flex justify-between items-center mb-4">
-            <h2 className="text-xl font-bold">ข้อมูลผู้ใช้</h2>
+      {/* แท็บสลับ */}
+      <div className="flex-1">
+        <div className="float-left py-[12px] bg-[#f1f1f1] border-r border-r-[#f1f1f1]  w-[200px] h-screen">
+          <button
+            onClick={() => setActiveTab("profile")}
+            className={`block w-full text-left my-2 px-4 py-2 rounded  ${
+              activeTab === "profile"
+                ? "bg-blue-600 text-white "
+                : "bg-[#f1f1f1] cursor-pointer"
+            }`}
+          >
+            โปรไฟล์
+          </button>
+
+          <button
+            onClick={() => setActiveTab("editprofile")}
+            className={`block w-full text-left my-2 px-4 py-2 rounded  ${
+              activeTab === "editprofile"
+                ? "bg-blue-600 text-white"
+                : "bg-[#f1f1f1] cursor-pointer"
+            }`}
+          >
+            แก้ไขโปรไฟล์
+          </button>
+
+          <button
+            onClick={() => setActiveTab("favoritecars")}
+            className={`block w-full text-left my-2 px-4 py-2 rounded  ${
+              activeTab === "favoritecars"
+                ? "bg-blue-600 text-white"
+                : "bg-[#f1f1f1] cursor-pointer"
+            }`}
+          >
+            รายการโปรด
+          </button>
+
+          <button
+            onClick={() => setActiveTab("bookings")}
+            className={`block w-full text-left my-2 px-4 py-2 rounded  ${
+              activeTab === "bookings"
+                ? "bg-blue-600 text-white"
+                : "bg-[#f1f1f1 cursor-pointer"
+            }`}
+          >
+            การจอง
+          </button>
+        </div>
+
+        {/* เนื้อหาตามแท็บ */}
+        {activeTab === "profile" && (
+          <>
+          <h2 className="text-xl font-bold">ข้อมูลผู้ใช้</h2>
+    {fields.map((field) => (
+      <div
+        key={field.name}
+        className="flex items-center justify-between rounded-3xl p-2"
+      >
+        <span className="flex-1">
+          <strong>{field.label}:</strong> {(item as any)[field.name]}
+        </span>
+      </div>
+    ))}
+
+    {/* แสดงสถานะการยืนยันอีเมล */}
+    <div className="mt-4">
+      {item.emailVerified ? (
+        ""
+      ) : (
+        <div className="flex items-center gap-3">
+          <p className="text-red-500 font-semibold">
+            ❌ อีเมลยังไม่ได้รับการยืนยัน
+          </p>
+          <button
+            onClick={handleSendVerifyEmail}
+            className="px-3 py-1 bg-blue-500 text-white rounded hover:bg-blue-600"
+          >
+            ส่งลิงก์ยืนยัน
+          </button>
+        </div>
+      )}
+    </div>
+          </>
+        )}
+
+        {activeTab === "editprofile" && 
+        <>
+        <div className="flex justify-between items-center">
+            <h2 className="text-xl font-bold">แก้ไขโปรไฟล์</h2>
             {!isEdit && (
               <button
                 onClick={handleEdit}
@@ -118,7 +223,7 @@ const ProfileList = ({ item, loadData }: ListUserProps) => {
           {fields.map((field) => (
             <div
               key={field.name}
-              className="flex items-center justify-between bg-amber-100 rounded-3xl p-2"
+              className="flex items-center justify-between rounded-3xl p-2"
             >
               {isEdit ? (
                 <input
@@ -154,36 +259,44 @@ const ProfileList = ({ item, loadData }: ListUserProps) => {
               </button>
             </div>
           )}
-        </div>
-      </div>
+        </>
+        }
 
-      <ToastContainer position="top-right" />
-
-      <div className="p-4">
-        <h1 className="text-xl font-bold mb-4">รถยนต์ที่คุณชื่นชอบ</h1>
-        {loading ? (
-          <p>กำลังโหลด...</p>
-        ) : favorites.length === 0 ? (
-          <p className="text-gray-500">ยังไม่มีรถยนต์ในรายการโปรด</p>
-        ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 text-black">
-            {favorites.map((car) => (
-              <CarList
-                key={car.id}
-                item={car}
-                isLoggedIn={true}
-                initialIsFavorite={true}
-                onFavoriteChange={(carId, isFav) => {
-                  if (!isFav) handleRemoveFavorite(carId);
-                }}
-              />
-            ))}
-          </div>
+        {activeTab === "favoritecars" && (
+          <>
+            <div className="p-4">
+              <h1 className="text-xl font-bold mb-4">รถยนต์ที่คุณชื่นชอบ</h1>
+              {loading ? (
+                <p>กำลังโหลด...</p>
+              ) : favorites.length === 0 ? (
+                <p className="text-gray-500">ยังไม่มีรถยนต์ในรายการโปรด</p>
+              ) : (
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 text-black">
+                  {favorites.map((car) => (
+                    <CarList
+                      key={car.id}
+                      item={car}
+                      isLoggedIn={true}
+                      initialIsFavorite={true}
+                      onFavoriteChange={(carId, isFav) => {
+                        if (!isFav) handleRemoveFavorite(carId);
+                      }}
+                    />
+                  ))}
+                </div>
+              )}
+            </div>
+          </>
         )}
-        <div className="p-4">
-      <h2 className="text-xl font-bold mb-4">รายการจองของฉัน</h2>
-      <BookingList bookings={bookings} refreshBookings={loadBookings} />
-    </div>
+
+        {activeTab === "bookings" && (
+          <>
+            <div className="p-4">
+              <h2 className="text-xl font-bold mb-4">รายการจองของฉัน</h2>
+              <BookingList bookings={bookings} refreshBookings={loadBookings} />
+            </div>
+          </>
+        )}
       </div>
     </>
   );

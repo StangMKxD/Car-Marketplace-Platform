@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "react-toastify";
 import { useCompare } from "@/contexts/CompareContext";
+import { logout } from "@/utils/logout";
 
 const Navbar = () => {
   const router = useRouter();
@@ -12,12 +13,11 @@ const Navbar = () => {
   const { count } = useCompare();
 
   const handleLogout = () => {
-    localStorage.removeItem("token");
-    localStorage.removeItem("role");
+   logout()
     setIsLoggedIn(false);
-    setRole(null); // ล้าง role ทันที
+    setRole(null); 
     toast.success("ออกจากระบบแล้ว");
-    router.push("/");
+    router.push("/login");
   };
 
 
@@ -70,7 +70,7 @@ const Navbar = () => {
             </Link>
             <button
               onClick={handleLogout}
-              className="text-red-500 hover:underline"
+              className="text-red-500 cursor-pointer hover:underline"
             >
               ออกจากระบบ
             </button>

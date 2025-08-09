@@ -1,13 +1,10 @@
 "use client";
 
-import { getCompareUser, getData, getFavorites } from "@/api/user";
+import { getData, getFavorites } from "@/api/user";
 import CarList from "@/components/CarList";
 import { Cartype } from "@/types";
 import { useEffect, useState } from "react";
 import { useAuth } from "@/contexts/AuthContext";
-import { toast } from "react-toastify";
-import { useRouter } from "next/navigation";
-import CompareButton from "@/components/CompareButton";
 
 const carTypes = [
   { id: "ALL", label: "รถทั้งหมด", icon: "" },
@@ -22,8 +19,6 @@ const CarPage = () => {
   const [activeTab, setActiveTab] = useState(carTypes[0].id);
   const { isLoggedIn } = useAuth();
   const [favoriteIds, setFavoriteIds] = useState<number[]>([]);
-
-  // State ควบคุม fade in
   const [fadeIn, setFadeIn] = useState(false);
 
   useEffect(() => {
@@ -62,7 +57,7 @@ const CarPage = () => {
   return (
     <>
       <div className="p-4">
-        <div className="flex space-x-4 border-b mb-6 overflow-x-auto">
+        <div className="flex space-x-4 border-b-2 border-b-[#f1f1f1] mb-6 overflow-x-auto">
           {carTypes.map((type) => (
             <button
               key={type.id}

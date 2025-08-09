@@ -22,8 +22,6 @@ const CarList = ({
   isLoggedIn,
   initialIsFavorite = false,
   onFavoriteChange,
-  onToggleCompare,
-  isCompareSelected,
 }: ListProps) => {
   const [showBookingForm, setShowBookingForm] = useState(false);
   const [bookingDate, setBookingDate] = useState("");
@@ -55,8 +53,8 @@ const CarList = ({
         toast.success("เพิ่มเข้ารายการโปรดแล้ว");
         onFavoriteChange?.(item.id, true);
       }
-    } catch (error) {
-      console.error("Favorite toggle error", error);
+    } catch (err) {
+      console.error("Favorite toggle error", err);
       toast.error("บางอย่างผิดพลาด โปรดลองอีกครั้ง");
     } finally {
       setLoading(false);
@@ -89,9 +87,9 @@ const CarList = ({
       toast.success("ส่งคำขอจองเรียบร้อยแล้ว");
       setShowBookingForm(false);
       setBookingDate("");
-    } catch (error) {
-      console.error("Booking Error:", error);
-      toast.error("เกิดข้อผิดพลาดในการจอง");
+    } catch (err: any) {
+      console.error("Booking Error:", err);
+      toast.error(err);
     }
   };
 
@@ -103,19 +101,17 @@ const CarList = ({
     <>
       <div className="w-full flex overflow-hidden">
         <div className="flex-1 mx-2 my-2 h-[500px] bg-white rounded-xl p-4 shadow border border-[#dbdbdb] flex flex-col justify-between">
-          {/* ส่วนบน */}
+    
           <div>
             <div className="w-full p-2 h-[300px] overflow-hidden rounded-lg border mx-auto border-gray-300">
-              {item.images ? (
+              {item.images && item.images.length > 0 ? (
                 <img
                   src={`${process.env.NEXT_PUBLIC_BACKEND_URL}${item.images[0].url}`}
                   alt={item.model}
                   className="object-cover w-full h-full"
                 />
               ) : (
-                <div className="flex items-center justify-center h-full text-gray-400 italic text-sm">
-                  ไม่มีรูปภาพ
-                </div>
+                <div>โหลดบ่ติด</div>
               )}
             </div>
 
@@ -133,8 +129,6 @@ const CarList = ({
                 {item.fuel}
               </div>
             </div>
-
-            
           </div>
 
           {/* ปุ่มล่าง */}
@@ -151,8 +145,6 @@ const CarList = ({
             </button>
 
             <div className="flex space-x-2">
-              
-
               <CompareButton car={item} />
 
               <button
@@ -191,13 +183,13 @@ const CarList = ({
             <div className="flex justify-end mt-4 gap-2">
               <button
                 onClick={() => setShowBookingForm(false)}
-                className="px-4 py-2 border rounded text-white bg-red-500 hover:bg-red-400"
+                className="px-4 py-2 border rounded cursor-pointer text-white bg-red-500 hover:bg-red-400"
               >
                 ยกเลิก
               </button>
               <button
                 onClick={handleBooking}
-                className="px-4 py-2 bg-green-500 text-white rounded hover:bg-green-400"
+                className="px-4 py-2 bg-green-500 cursor-pointer text-white rounded hover:bg-green-400"
               >
                 ยืนยันการจอง
               </button>

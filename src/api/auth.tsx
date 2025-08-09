@@ -1,8 +1,8 @@
-import { api } from "./apiInstance";
+import axiosInstance from "./axiosInstance";
 
 // login
 export const loginForm = async (form: { email: string; password: string }) => { 
-    const res = await api.post("/login", form)
+    const res = await axiosInstance.post("/login", form)
     return res.data
 }
 // register
@@ -14,7 +14,7 @@ export const registerUser = async (form: {
   phone: string
 }) => {
  
-    const res = await api.post("/register", form)
+    const res = await axiosInstance.post("/register", form)
     return res.data
 
 }

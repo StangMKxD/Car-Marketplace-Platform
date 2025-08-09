@@ -10,7 +10,7 @@ const CompareButton = ({ car }: { car: Cartype}) => {
     <>
     <button
     onClick={() => toggle(car)}
-    className={`px-3 py-1 rounded cursor-pointer ${isCompared ? "bg-red-500" : "bg-green-500"}`}
+    className={`px-3 py-1 rounded cursor-pointer ${isCompared ? "bg-red-500 hover:bg-red-600" : "bg-green-500 hover:bg-green-600"}`}
     >
         {isCompared ? "ยกเลิก" : "เปรียบเทียบ"}
     </button>
