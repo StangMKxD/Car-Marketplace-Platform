@@ -1,0 +1,9 @@
+@import "tailwindcss";
+
+body {
+  font-family: Arial, Helvetica, sans-serif;
+}
+
+.favorite-btn {
+  transition: color 0.3s ease;
+}

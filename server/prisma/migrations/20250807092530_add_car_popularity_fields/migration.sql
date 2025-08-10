@@ -1,0 +1,3 @@
+-- AlterTable
+ALTER TABLE `car` ADD COLUMN `totalBookings` INTEGER NOT NULL DEFAULT 0,
+    ADD COLUMN `totalFavorites` INTEGER NOT NULL DEFAULT 0;
