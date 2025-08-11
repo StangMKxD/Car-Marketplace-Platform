@@ -8,8 +8,9 @@ const { upload } = require("../middleware/upload");
 
 // Auth login register
 router.post("/register", auth.register);
-router.post("/send-verifyemail", authenticateToken, user.sendVerifyEmail);
-router.get("/verifyemail", user.verifyEmail);
+router.post("/forgot-password", auth.forgotPassword)
+router.get("/reset-password", authenticateToken, auth.verifyReset)
+router.post("/reset-password/update", auth.updatePassword)
 router.post("/login", auth.login);
 
 // ทุกคนดูรถได้
@@ -24,6 +25,9 @@ router.use(authenticateToken);
 // User Role
 router.get("/user/comparecar/", authenticateToken, user.getCompare);
 router.post("/user/comparecar/", authenticateToken, user.toggleCompare);
+
+router.post("/send-verifyemail", authenticateToken, user.sendVerifyEmail);
+router.get("/verifyemail", user.verifyEmail);
 
 router.get("/user/profile", authenticateToken, user.getProfile);
 router.put("/user/updateprofile", authenticateToken, user.updateProfile);

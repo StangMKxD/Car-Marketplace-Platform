@@ -13,7 +13,9 @@ axiosInstance.interceptors.response.use(
   (response) => response,
   (error) => {
     if (error.response) {
-      if (error.response.status === 401) {
+      const reqUrl = error.config?.url || "";
+      
+      if (error.response.status === 401 && !reqUrl.includes("reset-password")) {
         toast.error("เซสชันหมดอายุ กรุณาเข้าสู่ระบบใหม่");
         logout();
       } else if (

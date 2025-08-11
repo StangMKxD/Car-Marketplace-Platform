@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import { verifyEmail } from "@/api/user"; // ฟังก์ชันที่คุณเขียนไว้เรียก backend
 
-export default function VerifyEmailPage() {
+const VerifyEmailPage = () => {
   const searchParams = useSearchParams();
   const token = searchParams.get("token");
   const [status, setStatus] = useState("กำลังยืนยัน...");
@@ -33,3 +33,5 @@ export default function VerifyEmailPage() {
     </div>
   );
 }
+
+export default VerifyEmailPage;

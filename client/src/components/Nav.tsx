@@ -16,7 +16,6 @@ const Navbar = () => {
    logout()
     setIsLoggedIn(false);
     setRole(null); 
-    toast.success("ออกจากระบบแล้ว");
     router.push("/login");
   };
 
