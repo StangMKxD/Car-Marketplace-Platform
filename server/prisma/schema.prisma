@@ -14,20 +14,20 @@ datasource db {
 }
 
 model User {
-  id                  Int                  @id @default(autoincrement())
-  name                String
-  surname             String
-  email               String               @unique
-  password            String
-  phone               String               @unique @db.VarChar(10)
-  role                Role                 @default(USER)
-  emailVerified       Boolean              @default(false)
-  favouriteCars       FavouriteCar[]
-  bookings            Booking[]
-  compareCars         CompareCar[]
-  resetPasswordTokens ResetPasswordToken[]
-  createdAt           DateTime             @default(now())
-  updatedAt           DateTime             @updatedAt
+  id            Int            @id @default(autoincrement())
+  name          String
+  surname       String
+  email         String         @unique
+  password      String
+  phone         String         @unique @db.VarChar(10)
+  role          Role           @default(USER)
+  emailVerified Boolean        @default(false)
+  favouriteCars FavouriteCar[]
+  bookings      Booking[]
+  compareCars   CompareCar[]
+  // resetPasswordTokens ResetPasswordToken[]
+  createdAt     DateTime       @default(now())
+  updatedAt     DateTime       @updatedAt
 }
 
 model Car {
@@ -37,7 +37,7 @@ model Car {
   year           Int
   fuel           String
   price          Int
-  transmission   String
+  transmission   Transmission
   images         Image[]
   detail         String?        @db.VarChar(1000)
   type           Type
@@ -45,6 +45,7 @@ model Car {
   bookings       Booking[]
   compareCarsA   CompareCar[]   @relation("carA")
   compareCarsB   CompareCar[]   @relation("carB")
+  stock          Int            @default(1)
   totalBookings  Int            @default(0)
   totalFavorites Int            @default(0)
   createdAt      DateTime       @default(now())
@@ -94,9 +95,14 @@ enum Role {
 
 enum Type {
   SEDAN
-  SUV
+  PICKUP4
   PICKUP
-  HEV
+  MPV
+}
+
+enum Transmission {
+  AUTO
+  MANUAL
 }
 
 model Image {
@@ -112,11 +118,11 @@ enum BookingStatus {
   REJECTED
 }
 
-model ResetPasswordToken {
-  id        Int      @id @default(autoincrement())
-  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  userId    Int
-  token     String   @unique
-  expiresAt DateTime
-  createdAt DateTime @default(now())
-}
+// model ResetPasswordToken {
+//   id        Int      @id @default(autoincrement())
+//   user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+//   userId    Int
+//   token     String   @unique
+//   expiresAt DateTime
+//   createdAt DateTime @default(now())
+// }

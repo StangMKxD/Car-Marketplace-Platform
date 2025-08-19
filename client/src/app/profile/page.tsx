@@ -23,7 +23,7 @@ const ProfilePage = () => {
 
   return (
     <>
-      <div>
+      <div className="pt-15">
         {user ? (
           <ProfileList item={user} loadData={loadData} />
         ) : (

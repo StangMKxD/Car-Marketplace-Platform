@@ -1,7 +1,7 @@
 const prisma = require("../prisma/prisma");
 const cron = require("node-cron");
 const jwt = require("jsonwebtoken");
-const { Resend } = require('resend');
+const { Resend } = require("resend");
 
 const resend = new Resend(process.env.RESEND_API_KEY);
 
@@ -31,11 +31,11 @@ exports.createBooking = async (req, res) => {
   const { carId, date } = req.body;
   const userId = req.user.id;
   const user = await prisma.user.findUnique({
-    where: { id: req.user.id }
-  })
+    where: { id: req.user.id },
+  });
 
-  if(!user.emailVerified) {
-    return res.status(403).json({ message: "กรุณายืนยันอีเมลก่อนทำการจอง"})
+  if (!user.emailVerified) {
+    return res.status(403).json({ message: "กรุณายืนยันอีเมลก่อนทำการจอง" });
   }
 
   try {
@@ -226,7 +226,7 @@ exports.getProfile = async (req, res) => {
         phone: true,
         email: true,
         role: true,
-        emailVerified: true
+        emailVerified: true,
       },
     });
 
@@ -327,8 +327,9 @@ exports.toggleCompare = async (req, res) => {
 
 //ลบรายการของรถ
 exports.startBookingCleanupJob = () => {
+  // รันทุกวันตอนเที่ยงคืน
   cron.schedule("0 0 * * *", async () => {
-    console.log("เริ่มการลบคำขอการจอง");
+    console.log("เริ่มการลบคำขอการจองที่หมดอายุ");
 
     const today = new Date();
 
@@ -348,7 +349,9 @@ exports.startBookingCleanupJob = () => {
         },
       });
 
-      console.log(`Deleted ${approvedDeleted.count} APPROVED bookings`);
+      console.log(
+        `Deleted ${approvedDeleted.count} APPROVED bookings (expired)`
+      );
       console.log(`Deleted ${rejectedDeleted.count} REJECTED bookings`);
     } catch (error) {
       console.error("Error in cleanup job:", error);
@@ -416,6 +419,37 @@ exports.getPopularFavoritesCars = async (req, res) => {
   }
 };
 
+// newcar
+exports.getNewCar = async (req, res) => {
+  try {
+    const sevenDays = new Date();
+    sevenDays.setDate(sevenDays.getDate() - 7);
+
+    const newCars = await prisma.car.findMany({
+      where: {
+        createdAt: {
+          gte: sevenDays,
+        },
+      },
+      orderBy: {
+        createdAt: "desc",
+      },
+      include: {
+        images: true,
+      },
+    });
+
+    res.json({
+      success: true,
+      count: newCars.length,
+      cars: newCars,
+    });
+  } catch (err) {
+    console.error("getNewCars", err);
+    res.status(500).json({ success: false, message: "เกิดข้อผิดพลาด" });
+  }
+};
+
 exports.sendVerifyEmail = async (req, res) => {
   try {
     const userId = req.user.id;
@@ -437,12 +471,11 @@ exports.sendVerifyEmail = async (req, res) => {
       console.log(`Verify URL: ${verifyUrl}`);
     } else {
       await resend.emails.send({
-  from: process.env.EMAIL_FROM,
-  to: user.email,
-  subject: "ยืนยันอีเมลคุณ",
-  html: `<p>สวัสดีคุณ ${user.name} ${user.surname}</p> <p>กดที่ลิ้งเพื่อยืนยัน : <a href="${verifyUrl}"></a>${verifyUrl}</p>`,
-});
-
+        from: process.env.EMAIL_FROM,
+        to: user.email,
+        subject: "ยืนยันอีเมลคุณ",
+        html: `<p>สวัสดีคุณ ${user.name} ${user.surname}</p> <p>กดที่ลิ้งเพื่อยืนยัน : <a href="${verifyUrl}"></a>${verifyUrl}</p>`,
+      });
     }
 
     res.json({ message: "ส่งอีเมลยืนยันแล้ว" });
@@ -468,5 +501,3 @@ exports.verifyEmail = async (req, res) => {
     res.status(400).json({ error: "โทเค่นผิดหรือหมดอายุ" });
   }
 };
-
-

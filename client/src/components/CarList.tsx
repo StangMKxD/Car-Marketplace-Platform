@@ -7,6 +7,7 @@ import { useEffect, useState } from "react";
 import { FaHeart } from "react-icons/fa";
 import { toast } from "react-toastify";
 import CompareButton from "./CompareButton";
+import { createPortal } from "react-dom";
 
 type ListProps = {
   item: Cartype;
@@ -101,7 +102,6 @@ const CarList = ({
     <>
       <div className="w-full flex overflow-hidden">
         <div className="flex-1 mx-2 my-2 h-[500px] bg-white rounded-xl p-4 shadow border border-[#dbdbdb] flex flex-col justify-between">
-    
           <div>
             <div className="w-full p-2 h-[300px] overflow-hidden rounded-lg border mx-auto border-gray-300">
               {item.images && item.images.length > 0 ? (
@@ -146,7 +146,6 @@ const CarList = ({
 
             <div className="flex space-x-2">
               <CompareButton car={item} />
-
               <button
                 onClick={handleOpenBookingForm}
                 className="bg-blue-500 text-white cursor-pointer px-3 py-2 rounded hover:bg-blue-600"
@@ -164,39 +163,41 @@ const CarList = ({
         </div>
       </div>
 
-      {/* ฟอร์มจอง */}
-      {showBookingForm && (
-        <div className="fixed backdrop-blur-md inset-0 flex justify-center items-center z-50">
-          <div className="bg-white p-6 rounded shadow-lg w-[90%] max-w-md">
-            <h2 className="text-xl mb-4 font-semibold">
-              ทดลองขับ: {item.model}
-            </h2>
-            <label className="block mb-2">
-              วันที่ต้องการจอง:
-              <input
-                type="date"
-                className="w-full border p-2 rounded mt-1"
-                value={bookingDate}
-                onChange={(e) => setBookingDate(e.target.value)}
-              />
-            </label>
-            <div className="flex justify-end mt-4 gap-2">
-              <button
-                onClick={() => setShowBookingForm(false)}
-                className="px-4 py-2 border rounded cursor-pointer text-white bg-red-500 hover:bg-red-400"
-              >
-                ยกเลิก
-              </button>
-              <button
-                onClick={handleBooking}
-                className="px-4 py-2 bg-green-500 cursor-pointer text-white rounded hover:bg-green-400"
-              >
-                ยืนยันการจอง
-              </button>
+      {/* ฟอร์มจองผ่าน Portal */}
+      {showBookingForm &&
+        createPortal(
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm">
+            <div className="bg-white p-6 rounded shadow-lg w-[90%] max-w-md">
+              <h2 className="text-xl mb-4 font-semibold">
+                ทดลองขับ: {item.model}
+              </h2>
+              <label className="block mb-2">
+                วันที่ต้องการจอง:
+                <input
+                  type="date"
+                  className="w-full border p-2 rounded mt-1"
+                  value={bookingDate}
+                  onChange={(e) => setBookingDate(e.target.value)}
+                />
+              </label>
+              <div className="flex justify-end mt-4 gap-2">
+                <button
+                  onClick={() => setShowBookingForm(false)}
+                  className="px-4 py-2 border rounded cursor-pointer text-white bg-red-500 hover:bg-red-400"
+                >
+                  ยกเลิก
+                </button>
+                <button
+                  onClick={handleBooking}
+                  className="px-4 py-2 bg-green-500 cursor-pointer text-white rounded hover:bg-green-400"
+                >
+                  ยืนยันการจอง
+                </button>
+              </div>
             </div>
-          </div>
-        </div>
-      )}
+          </div>,
+          document.body
+        )}
     </>
   );
 };

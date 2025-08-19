@@ -141,6 +141,12 @@ export const getPopularCarsFavorites = async () => {
   return res.data;
 };
 
+//new car
+export const getNewCar = async () => {
+  const res = await axiosInstance.get("/newcars")
+  return res.data
+}
+
 // ยืนยันอีเมล
 export const verifyEmail = async (token: string) => {
   const res = await axiosInstance.get(`/verifyemail?token=${token}`);

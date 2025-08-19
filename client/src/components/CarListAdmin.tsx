@@ -43,7 +43,6 @@ const ListAdmin = ({ item, loadData }: ListProps) => {
     }));
   };
 
-  // delete function
   const handleDelete = async (id: number) => {
     const result = await MySwal.fire({
       title: "ยืนยันการลบรถยนต์",
@@ -95,164 +94,161 @@ const ListAdmin = ({ item, loadData }: ListProps) => {
   };
 
   return (
-    <>
-      <div className="relative overflow-hidden">
-        <div className="flex mx-2 my-2 bg-white items-center h-auto rounded-xl p-4 shadow w-full border border-[#dbdbdb]">
-          <div className="absolute bottom-0 right-0 justify-center my-4 gap-3">
-            <div className="flex space-x-2 mx-2">
-              {isEdit ? (
-                <>
-                  <button
-                    onClick={() => handleConfirm(item.id)}
-                    className="flex items-center gap-1 px-4 py-2 rounded bg-green-500 cursor-pointer text-white hover:bg-green-600"
-                    title="บันทึก"
-                  >
-                    <MdDone size={20} />
-                    บันทึก
-                  </button>
-                  <button
-                    onClick={handleCancel}
-                    className="flex items-center gap-1 px-4 py-2 rounded bg-gray-500 cursor-pointer text-white hover:bg-gray-600"
-                    title="ยกเลิก"
-                  >
-                    <MdClose size={20} />
-                    ยกเลิก
-                  </button>
-                </>
-              ) : (
-                <>
-                  <button
-                    onClick={handleEdit}
-                    className="flex items-center gap-1 px-4 py-2 rounded cursor-pointer bg-yellow-500 text-white hover:bg-yellow-600"
-                    title="แก้ไข"
-                  >
-                    <FaRegEdit size={20} />
-                    แก้ไข
-                  </button>
-                  <button
-                    onClick={() => handleDelete(item.id)}
-                    className="flex items-center gap-1 px-4 py-2 rounded cursor-pointer bg-red-500 text-white hover:bg-red-600"
-                    title="ลบ"
-                  >
-                    <CiCircleRemove size={25} />
-                    ลบ
-                  </button>
-                </>
-              )}
-            </div>
+    <div className="relative mx-4 my-4 bg-white rounded-xl shadow border border-gray-200 p-4 flex flex-col md:flex-row items-center md:items-start gap-4">
+      {/* ภาพรถ */}
+      <div className="w-full md:w-[350px] h-[250px] flex-shrink-0 rounded-lg border overflow-hidden">
+        {item.images && item.images.length > 0 ? (
+          <img
+            src={`${process.env.NEXT_PUBLIC_BACKEND_URL}${item.images[0].url}`}
+            alt={item.model}
+            className="object-cover w-full h-full"
+          />
+        ) : (
+          <div className="flex items-center justify-center h-full bg-gray-100 text-gray-400">
+            ไม่มีภาพ
           </div>
-          {/* รูปภาพ */}
-          <div className=" w-[400px] h-[400px] flex-shrink-0 overflow-hidden rounded-lg border mx-auto border-gray-300">
-            {item.images && item.images.length > 0 ? (
-              <img
-                src={`${process.env.NEXT_PUBLIC_BACKEND_URL}${item.images[0].url}`}
-                alt={item.model}
-                className="object-cover w-full h-full"
+        )}
+      </div>
+
+      {/* ข้อมูลรถ */}
+      <div className="flex-1 w-full flex flex-col gap-3 relative">
+        <div className="flex flex-wrap gap-3">
+          <div className="flex-1 bg-amber-100 rounded-2xl p-2 text-center">
+            {isEdit ? (
+              <input
+                type="text"
+                name="brand"
+                value={formEdit.brand}
+                onChange={handleChange}
+                className="w-full border rounded px-2 py-1"
               />
             ) : (
-              <div>โหลดบ่ติด</div>
+              item.brand
             )}
           </div>
-
-          {/* ข้อมูลรถ */}
-          <div>
-            <div
-              className={
-                isEdit
-                  ? "flex space-x-2 p-4 rounded-3xl"
-                  : "flex w-full justify-center space-x-4"
-              }
-            >
-              <div className="my-1 p-1 bg-amber-100 rounded-3xl">
-                {isEdit ? (
-                  <input
-                    type="text"
-                    name="brand"
-                    value={formEdit.brand}
-                    onChange={handleChange}
-                    className="border p-1 rounded w-full"
-                  />
-                ) : (
-                  item.brand
-                )}
-              </div>
-
-              <div className="my-1 p-1 bg-amber-100 rounded-3xl">
-                {isEdit ? (
-                  <input
-                    type="text"
-                    name="model"
-                    value={formEdit.model}
-                    onChange={handleChange}
-                    className="border p-1 rounded w-full"
-                  />
-                ) : (
-                  item.model
-                )}
-              </div>
-            </div>
-            <div className="flex space-x-3 w-full justify-center">
-              <div className="my-1 p-1 bg-amber-100 rounded-3xl">
-                {isEdit ? (
-                  <input
-                    type="number"
-                    name="price"
-                    value={formEdit.price}
-                    onChange={handleChange}
-                    className="border p-1 rounded w-full"
-                  />
-                ) : (
-                  item.price.toLocaleString()
-                )}
-              </div>
-
-              <div className="my-1 p-1 bg-amber-100 rounded-3xl">
-                {isEdit ? (
-                  <input
-                    type="text"
-                    name="type"
-                    value={formEdit.type}
-                    onChange={handleChange}
-                    className="border p-1 rounded w-full"
-                  />
-                ) : (
-                  item.type
-                )}
-              </div>
-
-              <div className="my-1 p-1 bg-amber-100 rounded-3xl">
-                {isEdit ? (
-                  <input
-                    type="text"
-                    name="fuel"
-                    value={formEdit.fuel}
-                    onChange={handleChange}
-                    className="border p-1 rounded w-full"
-                  />
-                ) : (
-                  item.fuel
-                )}
-              </div>
-            </div>
-
-            <div>
-              {isEdit ? (
-                <textarea
-                  name="detail"
-                  value={formEdit.detail}
-                  onChange={handleChange}
-                  className="border px-2 py-1 rounded w-full resize-y min-h-[100px]"
-                />
-              ) : (
-                <p className="whitespace-pre-wrap break-words my-2">
-                  {item.detail}
-                </p>
-              )}
-            </div>
+          <div className="flex-1 bg-amber-100 rounded-2xl p-2 text-center">
+            {isEdit ? (
+              <input
+                type="text"
+                name="model"
+                value={formEdit.model}
+                onChange={handleChange}
+                className="w-full border rounded px-2 py-1"
+              />
+            ) : (
+              item.model
+            )}
+          </div>
+          <div className="flex-1 bg-amber-100 rounded-2xl p-2 text-center">
+            {isEdit ? (
+              <input
+                type="number"
+                name="price"
+                value={formEdit.price}
+                onChange={handleChange}
+                className="w-full border rounded px-2 py-1 text-center"
+              />
+            ) : (
+              `${item.price.toLocaleString()} บาท`
+            )}
           </div>
         </div>
+
+        <div className="flex flex-wrap gap-3">
+          <div className="flex-1 bg-amber-100 rounded-2xl p-2 text-center">
+            {isEdit ? (
+              <input
+                type="text"
+                name="type"
+                value={formEdit.type}
+                onChange={handleChange}
+                className="w-full border rounded px-2 py-1"
+              />
+            ) : (
+              item.type
+            )}
+          </div>
+          <div className="flex-1 bg-amber-100 rounded-2xl p-2 text-center">
+            {isEdit ? (
+              <input
+                type="text"
+                name="fuel"
+                value={formEdit.fuel}
+                onChange={handleChange}
+                className="w-full border rounded px-2 py-1"
+              />
+            ) : (
+              item.fuel
+            )}
+          </div>
+          <div className="flex-1 bg-amber-100 rounded-2xl p-2 text-center">
+            {isEdit ? (
+              <input
+                type="number"
+                name="year"
+                value={formEdit.year}
+                onChange={handleChange}
+                className="w-full border rounded px-2 py-1"
+              />
+            ) : (
+              item.year
+            )}
+          </div>
+        </div>
+
+        <div className="mt-2">
+          {isEdit ? (
+            <textarea
+              name="detail"
+              value={formEdit.detail}
+              onChange={handleChange}
+              className="w-full border rounded px-2 py-1 resize-y min-h-[80px]"
+            />
+          ) : (
+            <p className="whitespace-pre-wrap break-words">{item.detail}</p>
+          )}
+        </div>
+
+        {/* ปุ่มแก้ไข / บันทึก / ลบ */}
+        <div className="flex gap-2 mt-3 justify-end">
+          {isEdit ? (
+            <>
+              <button
+                onClick={() => handleConfirm(item.id)}
+                className="flex items-center gap-1 px-4 py-2 rounded bg-green-500 text-white hover:bg-green-600"
+                title="บันทึก"
+              >
+                <MdDone size={20} /> บันทึก
+              </button>
+              <button
+                onClick={handleCancel}
+                className="flex items-center gap-1 px-4 py-2 rounded bg-gray-500 text-white hover:bg-gray-600"
+                title="ยกเลิก"
+              >
+                <MdClose size={20} /> ยกเลิก
+              </button>
+            </>
+          ) : (
+            <>
+              <button
+                onClick={handleEdit}
+                className="flex items-center gap-1 px-4 py-2 rounded bg-yellow-500 cursor-pointer text-white hover:bg-yellow-600"
+                title="แก้ไข"
+              >
+                <FaRegEdit size={20} /> แก้ไข
+              </button>
+              <button
+                onClick={() => handleDelete(item.id)}
+                className="flex items-center gap-1 px-4 py-2 rounded bg-red-500 cursor-pointer text-white hover:bg-red-600"
+                title="ลบ"
+              >
+                <CiCircleRemove size={20} /> ลบ
+              </button>
+            </>
+          )}
+        </div>
       </div>
-    </>
+    </div>
   );
 };
 

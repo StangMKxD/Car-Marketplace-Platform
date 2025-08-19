@@ -4,7 +4,7 @@ import { useCompare } from "@/contexts/CompareContext";
 const ComparePage = () => {
   const { carA, carB, toggle } = useCompare();
   return (
-    <div className="grid grid-cols-2 gap-4">
+    <div className="grid grid-cols-2 gap-4 pt-20">
       {[carA, carB].map((car, idx) => (
         <div key={idx} className="border p-4 rounded">
           {car ? (

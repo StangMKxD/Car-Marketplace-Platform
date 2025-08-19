@@ -1,34 +1,36 @@
-const prisma = require('../prisma/prisma');
+const prisma = require("../prisma/prisma");
 const { Resend } = require("resend");
 
 const resend = new Resend(process.env.RESEND_API_KEY);
 
 // ดูlist user
 exports.userList = async (req, res) => {
-    try {
-        const user = await prisma.user.findMany({
-            orderBy: { createdAt: 'desc' }
-        });
-        res.json({ user })
-    } catch (err) {
-        console.error("userlist",err)
-        res.status(500).json({ message: "โหลดผู้ใช้ไม่สำเร็จ"})
-    }
-}
+  try {
+    const user = await prisma.user.findMany({
+      orderBy: { createdAt: "desc" },
+    });
+    res.json({ user });
+  } catch (err) {
+    console.error("userlist", err);
+    res.status(500).json({ message: "โหลดผู้ใช้ไม่สำเร็จ" });
+  }
+};
 
-// ลบผู้ใช้ 
+// ลบผู้ใช้
 exports.deleteUser = async (req, res) => {
   const userId = parseInt(req.params.id);
 
   try {
-    // ลบข้อมูล favorite cars ของ user นี้
     await prisma.favouriteCar.deleteMany({
       where: { userId },
     });
 
-    // ลบข้อมูล booking ของ user นี้ (ถ้ามี)
     await prisma.booking.deleteMany({
       where: { userId },
+    });
+
+    await prisma.compareCar.deleteMany({
+      where: { userId: parseInt(userId) },
     });
 
     const deleted = await prisma.user.delete({
@@ -37,9 +39,11 @@ exports.deleteUser = async (req, res) => {
 
     res.json({ deleted });
   } catch (err) {
-    console.error("deleteuser",err);
-    if (err.code === 'P2003') {
-      return res.status(400).json({ message: "ไม่สามารถลบผู้ใช้ได้ เนื่องจากข้อมูลที่เกี่ยวข้องยังมีอยู่" });
+    console.error("deleteuser", err);
+    if (err.code === "P2003") {
+      return res.status(400).json({
+        message: "ไม่สามารถลบผู้ใช้ได้ เนื่องจากข้อมูลที่เกี่ยวข้องยังมีอยู่",
+      });
     }
     res.status(500).json({ message: "ลบผู้ใช้ล้มเหลว" });
   }
@@ -47,12 +51,16 @@ exports.deleteUser = async (req, res) => {
 
 // เพิ่มรถ
 exports.createCar = async (req, res) => {
-  const { brand, model, year, fuel, price, transmission, detail, type } = req.body;
-  const files = req.files; 
+  const { brand, model, year, fuel, price, transmission, detail, type } =
+    req.body;
+  const files = req.files;
 
-  if (!brand) return res.status(400).json({ message: "กรุณากรอกยี่ห้อรถ (brand)" });
-  if (!year || isNaN(parseInt(year))) return res.status(400).json({ message: "กรุณากรอกปีรถให้ถูกต้อง" });
-  if (!price || isNaN(parseInt(price))) return res.status(400).json({ message: "กรุณากรอกราคารถให้ถูกต้อง" });
+  if (!brand)
+    return res.status(400).json({ message: "กรุณากรอกยี่ห้อรถ (brand)" });
+  if (!year || isNaN(parseInt(year)))
+    return res.status(400).json({ message: "กรุณากรอกปีรถให้ถูกต้อง" });
+  if (!price || isNaN(parseInt(price)))
+    return res.status(400).json({ message: "กรุณากรอกราคารถให้ถูกต้อง" });
 
   try {
     const newCar = await prisma.car.create({
@@ -86,17 +94,36 @@ exports.createCar = async (req, res) => {
 // แก้ไขรถ
 exports.updateCar = async (req, res) => {
   const id = Number(req.params.id);
-  const { brand, model, year, fuel, price, transmission, imageUrl, detail, type } =
-    req.body;
+  const {
+    brand,
+    model,
+    year,
+    fuel,
+    price,
+    transmission,
+    imageUrl,
+    detail,
+    type,
+  } = req.body;
 
   try {
     const car = await prisma.car.update({
       where: { id },
-      data: { brand, model, year, fuel, price, transmission, imageUrl, detail, type },
+      data: {
+        brand,
+        model,
+        year,
+        fuel,
+        price,
+        transmission,
+        imageUrl,
+        detail,
+        type,
+      },
     });
     res.json(car);
   } catch (err) {
-    console.error("updatecar", err)
+    console.error("updatecar", err);
     res.status(404).json({ message: "ไม่เจอรถที่จะแก้ไข" });
   }
 };
@@ -142,22 +169,35 @@ exports.deleteCar = async (req, res) => {
 
     res.json({ message: "ลบรถสำเร็จ", deleted: car });
   } catch (err) {
-    console.error("deletecar",err);
-    res.status(500).json({ message: "เกิดข้อผิดพลาดขณะลบรถ", error: error.message });
+    console.error("deletecar", err);
+    res
+      .status(500)
+      .json({ message: "เกิดข้อผิดพลาดขณะลบรถ", error: error.message });
   }
 };
 
 // ดึงรถทั้งหมด (สำหรับ admin กับ user)
 exports.getAllCars = async (req, res) => {
   try {
+    const typeTH = {
+      SEDAN: "รถเก๋ง",
+      PICKUP4: "กระบะ4ประตู",
+      PICKUP: "กระบะ",
+      MPV: "รถ7ที่นั่ง",
+    };
     const cars = await prisma.car.findMany({
       include: {
-        images: true
-      }
+        images: true,
+      },
     });
-    res.json(cars);
+
+    const carsWithThaiType = cars.map((car) => ({
+      ...car,
+      type: typeTH[car.type] || car.type,
+    }));
+    res.json(carsWithThaiType);
   } catch (err) {
-    console.error("getallcars", err)
+    console.error("getallcars", err);
     res.status(500).json({ message: "Fetch ข้อมูลรถล้มเหลว" });
   }
 };
@@ -170,7 +210,7 @@ exports.getCar = async (req, res) => {
     const car = await prisma.car.findUnique({
       where: { id: carId },
       include: {
-        images: true, 
+        images: true,
       },
     });
 
@@ -197,7 +237,7 @@ exports.getAllBookings = async (req, res) => {
     });
     res.json(bookings);
   } catch (err) {
-    console.error("getallbookings",err);
+    console.error("getallbookings", err);
     res.status(500).json({ message: "ดึงข้อมูลไม่สำเร็จ" });
   }
 };
@@ -237,7 +277,8 @@ exports.updateBookingStatus = async (req, res) => {
 
     const { user, car } = updated;
 
-    const statusText = status === "APPROVED" ? "ได้รับการอนุมัติแล้ว" : "ไม่ได้รับการอนุมัติ";
+    const statusText =
+      status === "APPROVED" ? "ได้รับการอนุมัติแล้ว" : "ไม่ได้รับการอนุมัติ";
     const emailContent = `
 เรียนคุณ ${user.name} ${user.surname},
 
@@ -248,7 +289,7 @@ exports.updateBookingStatus = async (req, res) => {
 คนหล่อคนเท่
 `;
 
-console.log("📤 กำลังส่งอีเมลไปที่:", user.email);
+    console.log(" กำลังส่งอีเมลไปที่:", user.email);
 
     // ส่งอีเมลด้วย Resend
     await resend.emails.send({
@@ -258,7 +299,7 @@ console.log("📤 กำลังส่งอีเมลไปที่:", user
       text: emailContent || "นี่คือข้อความทดสอบส่งอีเมลจาก localhost",
     });
 
-    console.log("✅ ส่งอีเมลสำเร็จแล้ว");
+    console.log("ส่งอีเมลสำเร็จแล้ว");
 
     await prisma.booking.update({
       where: { id: parseInt(id) },
@@ -272,6 +313,154 @@ console.log("📤 กำลังส่งอีเมลไปที่:", user
   }
 };
 
+// dashboard แสดงข้อมูลต่างๆ
+exports.getAdminDashboards = async (req, res) => {
+  try {
+    const totalUsers = await prisma.user.count();
+    const totalCars = await prisma.car.count();
+    const totalPrice = await prisma.car.aggregate({
+      _sum: {
+        price: true,
+      },
+    });
+    const approvedCount = await prisma.booking.count({
+      where: {
+        status: "APPROVED"
+      }
+    })
+    const rejectedCount = await prisma.booking.count({
+      where: {
+        status: "REJECTED"
+      }
+    })
+    const totalCarType = await prisma.car.groupBy({
+      by: ["type"],
+      _count: {
+        type: true,
+      },
+    });
+
+    const totalBookingsCars = await prisma.booking.count({
+      where: {
+        status: "PENDING"
+      }
+    });
+    const users = await prisma.user.findMany({
+      select: { createdAt: true },
+    });
+
+    const months = [
+      "ม.ค.",
+      "ก.พ.",
+      "มี.ค.",
+      "เม.ย.",
+      "พ.ค.",
+      "มิ.ย.",
+      "ก.ค.",
+      "ส.ค.",
+      "ก.ย.",
+      "ต.ค.",
+      "พ.ย.",
+      "ธ.ค.",
+    ];
+    const monthyStatsUser = Array(12).fill(0);
+
+    users.forEach((u) => {
+      const month = new Date(u.createdAt).getMonth();
+      monthyStatsUser[month] += 1;
+    });
+
+    const bookings = await prisma.booking.findMany({
+      select: { createdAt: true },
+    });
+
+    const monthyStatsBooking = Array(12).fill(0);
+
+    bookings.forEach((b) => {
+      const month = new Date(b.createdAt).getMonth();
+      monthyStatsBooking[month] += 1;
+    });
+
+    const monthyStatsFormatted = months.map((name, index) => ({
+      name,
+      users: monthyStatsUser[index],
+      bookings: monthyStatsBooking[index],
+    }));
+
+    const popularCars = await prisma.car.findMany({
+      orderBy: [{ totalBookings: "desc" }, { totalFavorites: "desc" }],
+      select: {
+        id: true,
+        brand: true,
+        model: true,
+        year: true,
+        fuel: true,
+        type: true,
+        transmission: true,
+        price: true,
+        totalBookings: true,
+        totalFavorites: true,
+      },
+    });
+
+    const filteredPopularCars = popularCars.filter(
+      (car) => car.totalBookings > 0 || car.totalFavorites > 0
+    );
+
+    res.json({
+      totalUsers,
+      totalBookingsCars,
+      totalCars,
+      totalCarType,
+      approvedCount,
+      rejectedCount,
+      totalPrice: totalPrice._sum.price || 0,
+      popularCars: filteredPopularCars,
+      monthyStats: monthyStatsFormatted,
+    });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: "เกิดข้อผิดพลาดในการดึงข้อมูล" });
+  }
+};
+
+exports.carStockStatus = async (req, res) => {
+  try {
+    const stockData = await prisma.car.groupBy({
+      by: ["type"],
+      _sum: { stock: true },
+    });
+
+    const thresholds = {
+      SEDAN: { min: 7, max: 12 },
+      PICKUP4: { min: 3, max: 8 },
+      PICKUP: { min: 3, max: 7 },
+      MPV: { min: 2, max: 5 },
+    };
+
+    const alerts = stockData.map((item) => {
+      const stockCount = item._sum.stock || 0;
+      const { min, max } = thresholds[item.type] || { min: 0, max: 15 };
+      let status = "ok";
+      if (stockCount < min) status = "low";
+      if (stockCount > max) status = "high";
+      return {
+        type: item.type,
+        stock: stockCount,
+        status,
+        min,
+        max,
+      };
+    });
+
+    res.json(alerts);
+  } catch (err) {
+    console.error("carStockStatus", err);
+    res.status(500).json({ message: "โหลด stock ไม่สำเร็จ" });
+  }
+};
+
+//
 
 // ใช้ AI ส่ง หลังจากสถานะ Approved
 // exports.updateBookingStatus = async (req, res) => {

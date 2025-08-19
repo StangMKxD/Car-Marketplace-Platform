@@ -9,9 +9,9 @@ import { useAuth } from "@/contexts/AuthContext";
 const carTypes = [
   { id: "ALL", label: "รถทั้งหมด", icon: "" },
   { id: "SEDAN", label: "รถเก๋ง", icon: "" },
-  { id: "SUV", label: "7 ที่นั่ง", icon: "" },
+  { id: "PICKUP4", label: "กระบะ 4 ประตู", icon: "" },
   { id: "PICKUP", label: "กระบะ", icon: "" },
-  { id: "HEV", label: "HEV", icon: "" },
+  { id: "MPV", label: "รถ 7 ที่นั่ง", icon: "" },
 ];
 
 const CarPage = () => {
@@ -41,10 +41,10 @@ const CarPage = () => {
   }, [isLoggedIn]);
 
   useEffect(() => {
-    setFadeIn(false); 
+    setFadeIn(false);
     const timer = setTimeout(() => {
-      setFadeIn(true); 
-    }, 200); 
+      setFadeIn(true);
+    }, 200);
 
     return () => clearTimeout(timer);
   }, [activeTab]);
@@ -56,7 +56,7 @@ const CarPage = () => {
 
   return (
     <>
-      <div className="p-4">
+      <div className="pt-20 px-2">
         <div className="flex space-x-4 border-b-2 border-b-[#f1f1f1] mb-6 overflow-x-auto">
           {carTypes.map((type) => (
             <button
@@ -78,26 +78,27 @@ const CarPage = () => {
         </div>
 
         <div
-  className={`grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 text-black
+          className={`grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 text-black
     transition-transform duration-500 ease-in-out
     ${fadeIn ? "scale-100" : "scale-50"}
   `}
->
-  {fadeIn && (filteredCars.length === 0 ? (
-    <p className="col-span-full text-center text-gray-500">
-      ไม่มีรถประเภทนี้ในระบบ
-    </p>
-  ) : (
-    filteredCars.map((car) => (
-      <CarList
-        key={car.id}
-        item={car}
-        isLoggedIn={isLoggedIn}
-        initialIsFavorite={favoriteIds.includes(car.id)}
-      />
-    ))
-  ))}
-</div>
+        >
+          {fadeIn &&
+            (filteredCars.length === 0 ? (
+              <p className="col-span-full text-center text-gray-500">
+                ไม่มีรถประเภทนี้ในระบบ
+              </p>
+            ) : (
+              filteredCars.map((car) => (
+                <CarList
+                  key={car.id}
+                  item={car}
+                  isLoggedIn={isLoggedIn}
+                  initialIsFavorite={favoriteIds.includes(car.id)}
+                />
+              ))
+            ))}
+        </div>
       </div>
     </>
   );

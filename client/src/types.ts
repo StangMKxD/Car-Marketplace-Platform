@@ -11,6 +11,7 @@ export interface Cartype {
   type: string;
   totalBookings?: number;
   totalFavorites?: number;
+  stock?: number;
 }
 
 export type Usertype = {
@@ -37,3 +38,5 @@ export type BookingType = {
   car: Cartype;
   user: Usertype;
 };
+
+

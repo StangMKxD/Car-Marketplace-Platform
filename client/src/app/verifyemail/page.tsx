@@ -28,8 +28,11 @@ const VerifyEmailPage = () => {
   }, [token]);
 
   return (
+    <div className="mt-20 text-center text-5xl">
+
     <div style={{ padding: 40 }}>
       <h1>{status}</h1>
+    </div>
     </div>
   );
 }

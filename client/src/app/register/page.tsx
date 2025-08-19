@@ -59,7 +59,7 @@ const RegisterPage = () => {
     }
 
     try {
-      const res = await registerUser(form); // ส่งไปยัง API
+      const res = await registerUser(form); 
       toast.success(res.message);
 
       setTimeout(() => {

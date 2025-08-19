@@ -48,3 +48,14 @@ export const updateBookingList = async (id: number, status: "APPROVED" | "REJECT
     const res = await axiosInstance.put(`/userlist/bookinglist/${id}`, { status }, getAuthHeader())
     return res.data
 }
+
+export const adminDashboard = async () => {
+  const res = await axiosInstance.get('/admin/dashboard', getAuthHeader())
+  return res.data
+}
+
+// alet stock
+export const getAlert = async () => {
+  const res = await axiosInstance.get('/alertstock', getAuthHeader())
+  return res.data
+}

@@ -1,6 +1,10 @@
 "use client";
 
-import { getPopularCarsBookings, getPopularCarsFavorites } from "@/api/user";
+import {
+  getNewCar,
+  getPopularCarsBookings,
+  getPopularCarsFavorites,
+} from "@/api/user";
 import { Cartype } from "@/types";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
@@ -8,7 +12,10 @@ import { useEffect, useState } from "react";
 const Page = () => {
   const [mostBookings, setMostBookings] = useState<Cartype[]>([]);
   const [mostFavorites, setMostFavorites] = useState<Cartype[]>([]);
-  const [activeTab, setActiveTab] = useState<"pplbookings" | "pplfavorites">("pplbookings");
+  const [newCar, setNewCar] = useState<Cartype[]>([]);
+  const [activeTab, setActiveTab] = useState<
+    "pplbookings" | "pplfavorites" | "newcar"
+  >("newcar");
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
 
   const router = useRouter();
@@ -24,8 +31,14 @@ const Page = () => {
       setMostFavorites(res || []);
     };
 
+    const fetchNewCars = async () => {
+      const res = await getNewCar();
+      setNewCar(res.cars || []);
+    };
+
     fetchMostBookings();
     fetchMostFavorites();
+    fetchNewCars();
   }, []);
 
   const handleViewDetail = (id: number) => {
@@ -37,19 +50,19 @@ const Page = () => {
   };
 
   const ImageModal = () =>
-    selectedImage ? (
-      <div
-        className="fixed inset-0 backdrop-blur-md flex justify-center items-center z-50"
-        onClick={closeModal}
-      >
-        <img
-          src={selectedImage}
-          alt="full"
-          className="max-w-[90%] max-h-[90%] rounded-lg shadow-lg"
-          onClick={(e) => e.stopPropagation()} // กันไม่ให้คลิกปิดตอนคลิกบนรูป
-        />
-      </div>
-    ) : null;
+  selectedImage ? (
+    <div
+      className="fixed inset-0 bg-black/50 flex justify-center items-center z-50 p-4"
+      onClick={closeModal}
+    >
+      <img
+        src={selectedImage}
+        alt="full"
+        className="max-w-full max-h-full rounded-lg shadow-lg object-contain"
+        onClick={(e) => e.stopPropagation()} 
+      />
+    </div>
+  ) : null;
 
   const CarCard = ({ car }: { car: Cartype }) => (
     <div
@@ -62,7 +75,9 @@ const Page = () => {
           alt={car.model}
           className="object-cover w-full h-[360px] cursor-pointer hover:opacity-80"
           onClick={() =>
-            setSelectedImage(`${process.env.NEXT_PUBLIC_BACKEND_URL}${car.images[0].url}`)
+            setSelectedImage(
+              `${process.env.NEXT_PUBLIC_BACKEND_URL}${car.images[0].url}`
+            )
           }
         />
       ) : (
@@ -98,13 +113,23 @@ const Page = () => {
 
   return (
     <>
-      <div className="flex justify-center items-center bg-amber-300 w-full h-svh">
+      <div className="flex justify-center items-center bg-amber-300 w-full h-svh pt-20">
         <h1 className="text-8xl text-center">Banner</h1>
       </div>
       <div className="my-4">
         <h1 className="text-3xl text-center">รถยอดนิยมประจำสัปดาห์</h1>
         <div className="relative mb-14">
           <div className="absolute top-0 right-0 space-x-2 ">
+            <button
+              onClick={() => setActiveTab("newcar")}
+              className={`px-4 py-2 rounded  ${
+                activeTab === "newcar"
+                  ? "bg-blue-600 text-white"
+                  : "bg-gray-200 cursor-pointer"
+              }`}
+            >
+              รถเข้าใหม่
+            </button>
             <button
               onClick={() => setActiveTab("pplbookings")}
               className={`px-4 py-2 rounded  ${
@@ -129,11 +154,31 @@ const Page = () => {
           </div>
         </div>
 
+        {activeTab === "newcar" && (
+          <>
+            {newCar.length === 0 ? (
+              <div className="flex justify-center items-center h-[60vh]">
+                <p className="text-center text-gray-400 text-xl">
+                  ไม่มีข้อมูลรถ
+                </p>
+              </div>
+            ) : (
+              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
+                {newCar.map((car) => (
+                  <CarCard key={car.id} car={car} />
+                ))}
+              </div>
+            )}
+          </>
+        )}
+
         {activeTab === "pplbookings" && (
           <>
             {mostBookings.length === 0 ? (
               <div className="flex justify-center items-center h-[60vh]">
-                <p className="text-center text-gray-400 text-xl">ไม่มีข้อมูลรถ</p>
+                <p className="text-center text-gray-400 text-xl">
+                  ไม่มีข้อมูลรถ
+                </p>
               </div>
             ) : (
               <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
@@ -149,7 +194,9 @@ const Page = () => {
           <>
             {mostFavorites.length === 0 ? (
               <div className="flex justify-center items-center h-[60vh]">
-                <p className="text-center text-gray-400 text-xl">ไม่มีข้อมูลรถ</p>
+                <p className="text-center text-gray-400 text-xl">
+                  ไม่มีข้อมูลรถ
+                </p>
               </div>
             ) : (
               <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">

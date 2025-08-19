@@ -8,9 +8,9 @@ const { upload } = require("../middleware/upload");
 
 // Auth login register
 router.post("/register", auth.register);
-router.post("/forgot-password", auth.forgotPassword)
-router.get("/reset-password", authenticateToken, auth.verifyReset)
-router.post("/reset-password/update", auth.updatePassword)
+router.post("/forgot-password", auth.forgotPassword);
+router.get("/reset-password", authenticateToken, auth.verifyReset);
+router.post("/reset-password/update", auth.updatePassword);
 router.post("/login", auth.login);
 
 // ทุกคนดูรถได้
@@ -18,6 +18,7 @@ router.get("/cars", admin.getAllCars);
 router.get("/cars/:id", admin.getCar);
 router.get("/bkcars", user.getPopularBookingsCars);
 router.get("/fvcars", user.getPopularFavoritesCars);
+router.get("/newcars", user.getNewCar);
 
 // ต้อง login ก่อนถึงเข้าได้
 router.use(authenticateToken);
@@ -45,6 +46,13 @@ router.delete(
 );
 
 // Admin Role
+router.get(
+  "/alertstock",
+  authenticateToken,
+  authorizeRole("ADMIN"),
+  admin.carStockStatus
+);
+
 router.get(
   "/userlist/bookinglist",
   authenticateToken,
@@ -89,6 +97,12 @@ router.delete(
   authenticateToken,
   authorizeRole("ADMIN"),
   admin.deleteCar
+);
+router.get(
+  "/admin/dashboard",
+  authenticateToken,
+  authorizeRole("ADMIN"),
+  admin.getAdminDashboards
 );
 
 module.exports = router;

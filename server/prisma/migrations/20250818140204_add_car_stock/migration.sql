@@ -1,0 +1,2 @@
+-- AlterTable
+ALTER TABLE `car` MODIFY `stock` INTEGER NOT NULL DEFAULT 1;
