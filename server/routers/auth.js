@@ -46,6 +46,13 @@ router.delete(
 );
 
 // Admin Role
+router.post(
+  "/cars/sell",
+  authenticateToken,
+  authorizeRole("ADMIN"),
+  admin.sellCar
+);
+
 router.get(
   "/alertstock",
   authenticateToken,

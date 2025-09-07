@@ -106,19 +106,32 @@ exports.updateCar = async (req, res) => {
     type,
   } = req.body;
 
+  const typeMap = {
+    รถเก๋ง: "SEDAN",
+    กระบะ: "PICKUP",
+    กระบะ4ประตู: "PICKUP4",
+    รถ7ที่นั่ง: "MPV",
+  };
+
+  const enumType = typeMap[type];
+
+  if (!enumType) {
+    return res.status(400).json({ message: "ประเภทรถไม่ถูกต้อง" });
+  }
+
   try {
     const car = await prisma.car.update({
       where: { id },
       data: {
         brand,
         model,
-        year,
+        year: parseInt(year),
         fuel,
-        price,
+        price: parseInt(price),
         transmission,
         imageUrl,
         detail,
-        type,
+        type: enumType,
       },
     });
     res.json(car);
@@ -140,29 +153,24 @@ exports.deleteCar = async (req, res) => {
       return res.status(404).json({ message: "ไม่เจอรถที่จะลบ" });
     }
 
-    // ลบข้อมูลที่ FK ไปยังรถก่อน เช่น รูปภาพ
     await prisma.image.deleteMany({
       where: { carId: id },
     });
 
-    // ลบ favouriteCars
     await prisma.favouriteCar.deleteMany({
       where: { carId: id },
     });
 
-    // ลบ bookings
     await prisma.booking.deleteMany({
       where: { carId: id },
     });
 
-    // ลบ compareCars ทั้งที่เป็น carA หรือ carB
     await prisma.compareCar.deleteMany({
       where: {
         OR: [{ carAId: id }, { carBId: id }],
       },
     });
 
-    // ลบรถ
     await prisma.car.delete({
       where: { id },
     });
@@ -176,6 +184,46 @@ exports.deleteCar = async (req, res) => {
   }
 };
 
+//ปุ่มขายแล้ว
+exports.sellCar = async (req, res) => {
+  const { carId } = req.body;
+
+  try {
+    const car = await prisma.car.findUnique({ where: { id: carId } });
+    if (!car) return res.status(404).json({ message: "ไม่พบรถ" });
+
+    await prisma.$transaction(async (tx) => {
+      await tx.favouriteCar.deleteMany({ where: { carId } });
+      await tx.compareCar.deleteMany({
+        where: { OR: [{ carAId: carId }, { carBId: carId }] },
+      });
+      await tx.booking.deleteMany({ where: { carId } });
+      await tx.image.deleteMany({ where: { carId } });
+
+      await tx.soldCar.create({
+        data: {
+          carId: car.id,
+          brand: car.brand,
+          model: car.model,
+          year: car.year,
+          fuel: car.fuel,
+          price: car.price,
+          transmission: car.transmission,
+          detail: car.detail,
+          type: car.type,
+        },
+      });
+
+      await tx.car.delete({ where: { id: carId } });
+    });
+
+    res.status(200).json({ message: "ขายรถสำเร็จ" });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: "เกิดข้อผิดพลาดในการขายรถ" });
+  }
+};
+
 // ดึงรถทั้งหมด (สำหรับ admin กับ user)
 exports.getAllCars = async (req, res) => {
   try {
@@ -185,6 +233,7 @@ exports.getAllCars = async (req, res) => {
       PICKUP: "กระบะ",
       MPV: "รถ7ที่นั่ง",
     };
+
     const cars = await prisma.car.findMany({
       include: {
         images: true,
@@ -313,81 +362,108 @@ exports.updateBookingStatus = async (req, res) => {
   }
 };
 
-// dashboard แสดงข้อมูลต่างๆ
+// แดชบอร์ดแสดงข้อมูล
 exports.getAdminDashboards = async (req, res) => {
   try {
+
     const totalUsers = await prisma.user.count();
     const totalCars = await prisma.car.count();
-    const totalPrice = await prisma.car.aggregate({
-      _sum: {
-        price: true,
-      },
-    });
-    const approvedCount = await prisma.booking.count({
-      where: {
-        status: "APPROVED"
-      }
-    })
-    const rejectedCount = await prisma.booking.count({
-      where: {
-        status: "REJECTED"
-      }
-    })
-    const totalCarType = await prisma.car.groupBy({
-      by: ["type"],
-      _count: {
-        type: true,
-      },
-    });
+    const totalCarSoldCount = await prisma.soldCar.count();
+    const [{ _sum: carSum }, { _sum: soldSum }] = await Promise.all([
+      prisma.car.aggregate({ _sum: { price: true } }),
+      prisma.soldCar.aggregate({ _sum: { price: true } }),
+    ]);
+    const totalPrice = carSum.price || 0;
+    const totalSold = soldSum.price || 0;
 
-    const totalBookingsCars = await prisma.booking.count({
-      where: {
-        status: "PENDING"
-      }
+    const [approvedCount, rejectedCount, totalBookingsCars] = await Promise.all([
+      prisma.booking.count({ where: { status: "APPROVED" } }),
+      prisma.booking.count({ where: { status: "REJECTED" } }),
+      prisma.booking.count({ where: { status: "PENDING" } }),
+    ]);
+
+
+    const carTypeMapping = {
+      SEDAN: "รถเก๋ง",
+      PICKUP4: "รถกระบะ 4 ประตู",
+      PICKUP: "รถกระบะ",
+      MPV: "รถ 7 ที่นั่ง",
+    };
+
+    const transmissionMapping = {
+      AUTO: "อัตโนมัติ",
+      MANUAL: "ธรรมดา",
+    };
+
+
+    const totalCarTypeRaw = await prisma.car.groupBy({
+      by: ["type"],
+      _count: { type: true },
     });
-    const users = await prisma.user.findMany({
-      select: { createdAt: true },
-    });
+    const carTypeData = totalCarTypeRaw.map((item) => ({
+      name: carTypeMapping[item.type] || item.type || "อื่น ๆ",
+      จำนวนรถ: item._count.type,
+    }));
+
+ 
+    const [cars, soldCars, users, bookings] = await Promise.all([
+      prisma.car.findMany({ select: { createdAt: true, price: true } }),
+      prisma.soldCar.findMany({ select: { soldAt: true, price: true } }),
+      prisma.user.findMany({ select: { createdAt: true } }),
+      prisma.booking.findMany({ select: { createdAt: true } }),
+    ]);
 
     const months = [
-      "ม.ค.",
-      "ก.พ.",
-      "มี.ค.",
-      "เม.ย.",
-      "พ.ค.",
-      "มิ.ย.",
-      "ก.ค.",
-      "ส.ค.",
-      "ก.ย.",
-      "ต.ค.",
-      "พ.ย.",
-      "ธ.ค.",
+      "ม.ค.","ก.พ.","มี.ค.","เม.ย.","พ.ค.","มิ.ย.",
+      "ก.ค.","ส.ค.","ก.ย.","ต.ค.","พ.ย.","ธ.ค."
     ];
+
     const monthyStatsUser = Array(12).fill(0);
+    const monthyStatsCarsIn = Array(12).fill(0);
+    const monthyStatsCarsOut = Array(12).fill(0);
+    const monthyPriceCarsIn = Array(12).fill(0);
+    const monthyPriceCarsOut = Array(12).fill(0);
+    const monthyStatsBooking = Array(12).fill(0);
+
+    cars.forEach((c) => {
+      const month = new Date(c.createdAt).getMonth();
+      monthyStatsCarsIn[month] += 1;
+      monthyPriceCarsIn[month] += Number(c.price) || 0;
+    });
+
+    soldCars.forEach((s) => {
+      const month = new Date(s.soldAt).getMonth();
+      monthyStatsCarsOut[month] += 1;
+      monthyPriceCarsOut[month] += Number(s.price) || 0;
+    });
 
     users.forEach((u) => {
       const month = new Date(u.createdAt).getMonth();
       monthyStatsUser[month] += 1;
     });
 
-    const bookings = await prisma.booking.findMany({
-      select: { createdAt: true },
-    });
-
-    const monthyStatsBooking = Array(12).fill(0);
-
     bookings.forEach((b) => {
       const month = new Date(b.createdAt).getMonth();
       monthyStatsBooking[month] += 1;
     });
 
-    const monthyStatsFormatted = months.map((name, index) => ({
+
+    const monthyCars = months.map((name, index) => ({
+      name,
+      carsIn: monthyStatsCarsIn[index],
+      carsInPrice: monthyPriceCarsIn[index],
+      carsOut: monthyStatsCarsOut[index],
+      carsOutPrice: monthyPriceCarsOut[index],
+    }));
+
+    const monthyStats = months.map((name, index) => ({
       name,
       users: monthyStatsUser[index],
       bookings: monthyStatsBooking[index],
     }));
 
-    const popularCars = await prisma.car.findMany({
+    
+    const popularCarsRaw = await prisma.car.findMany({
       orderBy: [{ totalBookings: "desc" }, { totalFavorites: "desc" }],
       select: {
         id: true,
@@ -403,20 +479,27 @@ exports.getAdminDashboards = async (req, res) => {
       },
     });
 
-    const filteredPopularCars = popularCars.filter(
-      (car) => car.totalBookings > 0 || car.totalFavorites > 0
-    );
+    const popularCars = popularCarsRaw
+      .filter((car) => (car.totalBookings || 0) > 0 || (car.totalFavorites || 0) > 0)
+      .map((car) => ({
+        ...car,
+        type: carTypeMapping[car.type] || car.type,
+        transmission: transmissionMapping[car.transmission] || car.transmission,
+      }));
 
     res.json({
       totalUsers,
       totalBookingsCars,
       totalCars,
-      totalCarType,
+      totalCarSoldCount,
+      totalSold,
+      totalPrice,
       approvedCount,
       rejectedCount,
-      totalPrice: totalPrice._sum.price || 0,
-      popularCars: filteredPopularCars,
-      monthyStats: monthyStatsFormatted,
+      carTypeData,
+      monthyCars,
+      monthyStats,
+      popularCars,
     });
   } catch (err) {
     console.error(err);
@@ -424,6 +507,8 @@ exports.getAdminDashboards = async (req, res) => {
   }
 };
 
+
+// stock of car by type
 exports.carStockStatus = async (req, res) => {
   try {
     const stockData = await prisma.car.groupBy({
@@ -459,63 +544,3 @@ exports.carStockStatus = async (req, res) => {
     res.status(500).json({ message: "โหลด stock ไม่สำเร็จ" });
   }
 };
-
-//
-
-// ใช้ AI ส่ง หลังจากสถานะ Approved
-// exports.updateBookingStatus = async (req, res) => {
-//   const { id } = req.params;
-//   const { status } = req.body;
-
-//   try {
-//     const updated = await prisma.booking.update({
-//       where: { id: parseInt(id) },
-//       include: {
-//         user: true,
-//         car: true,
-//       },
-//       data: { status },
-//     });
-
-//     // ดึงข้อมูลผู้ใช้และรถ
-//     const { user, car } = updated;
-
-//     // ใช้ ChatGPT สร้างข้อความ
-//     const chatResponse = await openai.chat.completions.create({
-//       model: "gpt-4o",
-//       messages: [
-//         {
-//           role: "system",
-//           content: "คุณคือผู้ช่วยสำหรับส่งอีเมลแจ้งสถานะการจองรถให้ลูกค้า",
-//         },
-//         {
-//           role: "user",
-//           content: `ช่วยเขียนอีเมลแจ้งลูกค้า ${user.name} ว่าการจองรถ ${car.name} สถานะ: ${status === "APPROVED" ? "อนุมัติแล้ว" : "ถูกปฏิเสธ"}`,
-//         },
-//       ],
-//     });
-
-//     const emailContent = chatResponse.choices[0].message.content;
-
-//     // ส่งอีเมลด้วย Nodemailer
-//     const transporter = nodemailer.createTransport({
-//       service: "gmail",
-//       auth: {
-//         user: process.env.EMAIL_USER,
-//         pass: process.env.EMAIL_PASS,
-//       },
-//     });
-
-//     await transporter.sendMail({
-//       from: process.env.EMAIL_USER,
-//       to: user.email,
-//       subject: "แจ้งสถานะการจองรถของคุณ",
-//       text: emailContent,
-//     });
-
-//     res.json(updated);
-//   } catch (err) {
-//     console.error("updatebookingstatus", err);
-//     res.status(500).json({ message: "อัปเดตสถานะไม่สำเร็จ" });
-//   }
-// };

@@ -3,7 +3,6 @@
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/contexts/AuthContext";
-import { toast } from "react-toastify";
 import { useCompare } from "@/contexts/CompareContext";
 import { logout } from "@/utils/logout";
 
@@ -39,17 +38,20 @@ const Navbar = () => {
       </span>
     </Link>
 
+    <div className="relative mr-10">
     {isLoggedIn ? (
+
       <Link
         href="/compare"
         className="text-[18px] cursor-pointer hover:text-blue-600"
-      >
+        >
         <span>เปรียบเทียบ</span>
-        <span className="text-black text-xs px-1">({count}/2)</span>
+        <span className="absolute bottom-0 text-white text-xs py-1 px-2 bg-blue-500/80 rounded-full ">{count}</span>
       </Link>
     ) : (
       ""
     )}
+        </div>
 
     {role === "ADMIN" && (
       <Link href="/admin">

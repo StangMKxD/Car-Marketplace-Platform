@@ -4,6 +4,7 @@ import { removeData, updateData } from "../api/admin";
 import { toast } from "react-toastify";
 import { FaRegEdit } from "react-icons/fa";
 import { CiCircleRemove } from "react-icons/ci";
+import { FaBahtSign } from "react-icons/fa6";
 import { MdDone, MdClose } from "react-icons/md";
 import Swal from "sweetalert2";
 import withReactContent from "sweetalert2-react-content";
@@ -13,9 +14,10 @@ const MySwal = withReactContent(Swal);
 type ListProps = {
   item: Cartype;
   loadData: () => void;
+  onSell: (carId: number) => void
 };
 
-const ListAdmin = ({ item, loadData }: ListProps) => {
+const ListAdmin = ({ item, loadData, onSell }: ListProps) => {
   const [isEdit, setIsEdit] = useState(false);
   const [formEdit, setFormEdit] = useState<Cartype>({ ...item });
 
@@ -243,6 +245,13 @@ const ListAdmin = ({ item, loadData }: ListProps) => {
                 title="ลบ"
               >
                 <CiCircleRemove size={20} /> ลบ
+              </button>
+              <button
+                onClick={() => onSell(item.id)}
+                className="flex items-center gap-1 px-4 py-2 rounded bg-green-500 cursor-pointer text-white hover:bg-green-600"
+                title="ขาย"
+              >
+                <FaBahtSign size={20} /> ขายแล้ว
               </button>
             </>
           )}

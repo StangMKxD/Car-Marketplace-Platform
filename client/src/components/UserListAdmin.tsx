@@ -7,13 +7,13 @@ import withReactContent from "sweetalert2-react-content";
 
 const MySwal = withReactContent(Swal);
 
-type userProps = {
-  user: Usertype;
+type UserTableProps = {
+  user: Usertype[];
   onDelete: (id: number) => void;
 };
 
-const UserListAdmin = ({ user, onDelete }: userProps) => {
-  const handleDelete = async (id: number) => {
+const UserTableAdmin = ({ user, onDelete }: UserTableProps) => {
+  const handleDelete = async (user: Usertype) => {
     if (user.role === "ADMIN") {
       toast.error("ไม่สามารถลบผู้ดูแลระบบได้");
       return;
@@ -41,7 +41,7 @@ const UserListAdmin = ({ user, onDelete }: userProps) => {
     if (!result.isConfirmed) return;
 
     try {
-      const res = await removeUser(id);
+      const res = await removeUser(user.id);
       const deleted = res.deleted?.model;
 
       if (deleted) {
@@ -58,37 +58,61 @@ const UserListAdmin = ({ user, onDelete }: userProps) => {
   };
 
   return (
-    <div className="flex border px-4 py-2 rounded shadow mx-auto mt-3 w-3/4">
-      <div className="flex-1 mx-2 my-2 w-full">
-        <p>
-          <b>Name:</b> {user.name}
-        </p>
-        <p>
-          <b>Surname:</b> {user.surname}
-        </p>
-        <p>
-          <b>Email:</b> {user.email}
-        </p>
-        <p>
-          <b>Phone:</b> {user.phone}
-        </p>
-        <p>
-          <b>Role:</b> {user.role}
-        </p>
-      </div>
-      <div>
-        {user.role !== "admin" && (
-          <button
-            onClick={() => handleDelete(user.id)}
-            className="p-2 bg-red-500 rounded text-white hover:bg-red-600 cursor-pointer"
-            title="ลบ"
-          >
-            <CiCircleRemove size={20} />
-          </button>
-        )}
-      </div>
+    <div className="max-h-[500px] w-[900px] overflow-y-auto shadow hover:shadow-lg rounded-lg bg-white p-4 mx-auto">
+      <h2 className="text-2xl font-bold mb-4 text-center">รายการผู้ใช้งาน</h2>
+      <table className="w-full border-collapse">
+        <thead className="sticky top-0 bg-blue-100 z-10">
+          <tr>
+            {["ชื่อ", "นามสกุล", "อีเมล", "เบอร์โทร", "สิทธิ์", "การจัดการ"].map(
+              (title) => (
+                <th
+                  key={title}
+                  className="border-b-2 border-gray-300 px-4 py-2 text-center text-gray-700 font-semibold"
+                >
+                  {title}
+                </th>
+              )
+            )}
+          </tr>
+        </thead>
+        <tbody>
+          {user.map((u) => (
+            <tr
+              key={u.id}
+              className="hover:bg-gray-50 transition-colors duration-200"
+            >
+              <td className="border-b border-gray-200 px-4 py-2 text-center">
+                {u.name}
+              </td>
+              <td className="border-b border-gray-200 px-4 py-2 text-center">
+                {u.surname}
+              </td>
+              <td className="border-b border-gray-200 px-4 py-2 text-center">
+                {u.email}
+              </td>
+              <td className="border-b border-gray-200 px-4 py-2 text-center">
+                {u.phone}
+              </td>
+              <td className="border-b border-gray-200 px-4 py-2 text-center">
+                {u.role}
+              </td>
+              <td className="border-b border-gray-200 px-4 py-2 text-center">
+                {u.role == "ADMIN" && (
+                  <button
+                    onClick={() => handleDelete(u)}
+                    className="p-2 bg-red-500 rounded text-white hover:bg-red-600 cursor-pointer"
+                    title="ลบ"
+                  >
+                    <CiCircleRemove size={20} />
+                  </button>
+                )}
+              </td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
     </div>
   );
 };
 
-export default UserListAdmin;
+export default UserTableAdmin;

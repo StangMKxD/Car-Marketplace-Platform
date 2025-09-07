@@ -38,6 +38,23 @@ exports.createBooking = async (req, res) => {
     return res.status(403).json({ message: "กรุณายืนยันอีเมลก่อนทำการจอง" });
   }
 
+  if (!carId || !date) {
+      return res.status(400).json({ message: "กรุณาระบุรถและวันที่จอง" });
+    }
+
+    const existingBooking = await prisma.booking.findFirst({
+      where: {
+        carId: carId,
+        date: new Date(date),
+      },
+    });
+
+    if (existingBooking) {
+      return res
+        .status(409)
+        .json({ message: "รถคันนี้มีคนจองในวันที่เลือกแล้ว กรุณาเลือกวันอื่น" });
+    }
+
   try {
     const newBooking = await prisma.booking.create({
       data: {

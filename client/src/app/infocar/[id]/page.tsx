@@ -39,7 +39,7 @@ const InfoCarPage = () => {
   return (
     <div className="w-full flex overflow-hidden h-lvh shadow border border-[#dbdbdb] m-1">
       <div className="flex-1 mx-2 my-2 h-[600px] bg-white rounded-xl p-4 flex flex-col justify-between">
-        <div className="relative max-w-[800px] mx-auto">
+        <div className="relative w-[700px] mx-auto border">
           {/* Slide Images */}
           {car.images && car.images.length > 0 ? (
             <div className="relative overflow-hidden rounded-xl border aspect-video">

@@ -59,3 +59,9 @@ export const getAlert = async () => {
   const res = await axiosInstance.get('/alertstock', getAuthHeader())
   return res.data
 }
+
+// sell car 
+export const sellCar = async ( carId: number) => {
+  const res = await axiosInstance.post('/cars/sell',{ carId }, getAuthHeader())
+  return res.data
+}

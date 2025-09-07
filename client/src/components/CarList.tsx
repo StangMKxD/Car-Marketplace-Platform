@@ -3,11 +3,13 @@
 import { addFavorite, bookTestDrive, removeFavorite } from "@/api/user";
 import type { Cartype } from "@/types";
 import { useRouter } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { FaHeart } from "react-icons/fa";
 import { toast } from "react-toastify";
 import CompareButton from "./CompareButton";
 import { createPortal } from "react-dom";
+import { PiSteeringWheelFill } from "react-icons/pi";
+import { FaMagnifyingGlass } from "react-icons/fa6";
 
 type ListProps = {
   item: Cartype;
@@ -90,7 +92,7 @@ const CarList = ({
       setBookingDate("");
     } catch (err: any) {
       console.error("Booking Error:", err);
-      toast.error(err);
+      toast.error(err.message);
     }
   };
 
@@ -100,8 +102,8 @@ const CarList = ({
 
   return (
     <>
-      <div className="w-full flex overflow-hidden">
-        <div className="flex-1 mx-2 my-2 h-[500px] bg-white rounded-xl p-4 shadow border border-[#dbdbdb] flex flex-col justify-between">
+      <div className="w-full   flex overflow-hidden "> 
+        <div className="relative flex-1 mx-2 my-2 h-[500px] bg-white rounded-xl p-4 shadow border border-[#dbdbdb] flex flex-col justify-between overflow-hidden" >
           <div>
             <div className="w-full p-2 h-[300px] overflow-hidden rounded-lg border mx-auto border-gray-300">
               {item.images && item.images.length > 0 ? (
@@ -122,7 +124,7 @@ const CarList = ({
               <div className="my-1 p-2 bg-amber-100 rounded-3xl min-w-[70px] text-center">
                 {item.model}
               </div>
-              <div className="my-1 p-2 bg-amber-100 rounded-3xl min-w-[80px] text-center">
+              <div className="border absolute top-10 -right-18 transform rotate-45 px-10 py-2 bg-red-500 min-w-[80px] text-center text-white font-bold text-2xl">
                 {item.price.toLocaleString()} บาท
               </div>
               <div className="my-1 p-2 bg-amber-100 rounded-3xl min-w-[60px] text-center">
@@ -131,7 +133,6 @@ const CarList = ({
             </div>
           </div>
 
-          {/* ปุ่มล่าง */}
           <div className="mt-4 flex justify-between items-center">
             <button
               disabled={loading}
@@ -150,20 +151,19 @@ const CarList = ({
                 onClick={handleOpenBookingForm}
                 className="bg-blue-500 text-white cursor-pointer px-3 py-2 rounded hover:bg-blue-600"
               >
-                ทดลองขับ
+                <PiSteeringWheelFill size={28} />
               </button>
               <button
                 onClick={handleViewDetail}
                 className="bg-gray-200 px-3 py-2 rounded hover:bg-gray-300 cursor-pointer"
               >
-                ดูเพิ่มเติม
+                <FaMagnifyingGlass size={28} />
               </button>
             </div>
           </div>
         </div>
       </div>
 
-      {/* ฟอร์มจองผ่าน Portal */}
       {showBookingForm &&
         createPortal(
           <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm">

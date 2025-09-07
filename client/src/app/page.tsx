@@ -8,6 +8,7 @@ import {
 import { Cartype } from "@/types";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
+import { motion, AnimatePresence } from "framer-motion";
 
 const Page = () => {
   const [mostBookings, setMostBookings] = useState<Cartype[]>([]);
@@ -15,54 +16,51 @@ const Page = () => {
   const [newCar, setNewCar] = useState<Cartype[]>([]);
   const [activeTab, setActiveTab] = useState<
     "pplbookings" | "pplfavorites" | "newcar"
-  >("newcar");
+  >("pplbookings");
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
 
   const router = useRouter();
 
+  const tabs = [
+    { id: "newcar", label: "รถเข้าใหม่" },
+    { id: "pplbookings", label: "รถที่ถูกจองมากที่สุด" },
+    { id: "pplfavorites", label: "รถที่ถูกใจมากที่สุด" },
+  ];
+
   useEffect(() => {
-    const fetchMostBookings = async () => {
-      const res = await getPopularCarsBookings();
-      setMostBookings(res || []);
+    const fetchData = async () => {
+      const [bookings, favorites, newCars] = await Promise.all([
+        getPopularCarsBookings(),
+        getPopularCarsFavorites(),
+        getNewCar(),
+      ]);
+      setMostBookings(bookings || []);
+      setMostFavorites(favorites || []);
+      setNewCar(newCars.cars || []);
     };
-
-    const fetchMostFavorites = async () => {
-      const res = await getPopularCarsFavorites();
-      setMostFavorites(res || []);
-    };
-
-    const fetchNewCars = async () => {
-      const res = await getNewCar();
-      setNewCar(res.cars || []);
-    };
-
-    fetchMostBookings();
-    fetchMostFavorites();
-    fetchNewCars();
+    fetchData();
   }, []);
 
   const handleViewDetail = (id: number) => {
     router.push(`/infocar/${id}`);
   };
 
-  const closeModal = () => {
-    setSelectedImage(null);
-  };
+  const closeModal = () => setSelectedImage(null);
 
   const ImageModal = () =>
-  selectedImage ? (
-    <div
-      className="fixed inset-0 bg-black/50 flex justify-center items-center z-50 p-4"
-      onClick={closeModal}
-    >
-      <img
-        src={selectedImage}
-        alt="full"
-        className="max-w-full max-h-full rounded-lg shadow-lg object-contain"
-        onClick={(e) => e.stopPropagation()} 
-      />
-    </div>
-  ) : null;
+    selectedImage ? (
+      <div
+        className="fixed inset-0 bg-black/50 flex justify-center items-center z-50 p-4"
+        onClick={closeModal}
+      >
+        <img
+          src={selectedImage}
+          alt="full"
+          className="max-w-full max-h-full rounded-lg shadow-lg object-contain"
+          onClick={(e) => e.stopPropagation()}
+        />
+      </div>
+    ) : null;
 
   const CarCard = ({ car }: { car: Cartype }) => (
     <div
@@ -76,7 +74,7 @@ const Page = () => {
           className="object-cover w-full h-[360px] cursor-pointer hover:opacity-80"
           onClick={() =>
             setSelectedImage(
-              `${process.env.NEXT_PUBLIC_BACKEND_URL}${car.images[0].url}`
+              `${process.env.NEXT_PUBLIC_BACKEND_URL}${car.images?.[0]?.url}`
             )
           }
         />
@@ -113,103 +111,77 @@ const Page = () => {
 
   return (
     <>
-      <div className="flex justify-center items-center bg-amber-300 w-full h-svh pt-20">
-        <h1 className="text-8xl text-center">Banner</h1>
+      {/* Banner */}
+      <div className="flex relative justify-center items-center w-full h-svh pt-20 bg-[url(/banner.jpg)]">
       </div>
-      <div className="my-4">
-        <h1 className="text-3xl text-center">รถยอดนิยมประจำสัปดาห์</h1>
-        <div className="relative mb-14">
-          <div className="absolute top-0 right-0 space-x-2 ">
-            <button
-              onClick={() => setActiveTab("newcar")}
-              className={`px-4 py-2 rounded  ${
-                activeTab === "newcar"
-                  ? "bg-blue-600 text-white"
-                  : "bg-gray-200 cursor-pointer"
-              }`}
-            >
-              รถเข้าใหม่
-            </button>
-            <button
-              onClick={() => setActiveTab("pplbookings")}
-              className={`px-4 py-2 rounded  ${
-                activeTab === "pplbookings"
-                  ? "bg-blue-600 text-white"
-                  : "bg-gray-200 cursor-pointer"
-              }`}
-            >
-              รถที่ถูกจองมากที่สุดในสัปดาห์นี้
-            </button>
 
+      {/* รถยอดนิยม */}
+      <div className="my-3 px-4">
+        <h1 className="text-3xl text-center mb-4">รถยอดนิยมประจำสัปดาห์</h1>
+
+        {/* Tabs */}
+        <div className="flex justify-center space-x-4 relative border-b border-gray-300">
+          {tabs.map((tab) => (
             <button
-              onClick={() => setActiveTab("pplfavorites")}
-              className={`px-4 py-2 rounded  ${
-                activeTab === "pplfavorites"
-                  ? "bg-blue-600 text-white"
-                  : "bg-gray-200 cursor-pointer"
+              key={tab.id}
+              onClick={() => setActiveTab(tab.id as any)}
+              className={`px-4 py-2 cursor-pointer transition-colors ${
+                activeTab === tab.id
+                  ? "text-blue-600 font-bold"
+                  : "text-gray-500 hover:text-blue-600"
               }`}
             >
-              รถที่ถูกใจมากที่สุดในสัปดาห์นี้
+              {tab.label}
+              {activeTab === tab.id && (
+                <motion.div
+                  layoutId="activeTabUnderline"
+                  className="absolute bottom-0 left-0 right-0 h-[3px] bg-blue-600 rounded-t"
+                />
+              )}
             </button>
-          </div>
+          ))}
         </div>
 
-        {activeTab === "newcar" && (
-          <>
-            {newCar.length === 0 ? (
-              <div className="flex justify-center items-center h-[60vh]">
-                <p className="text-center text-gray-400 text-xl">
-                  ไม่มีข้อมูลรถ
+        {/* Content with animation */}
+        <AnimatePresence mode="wait">
+          <motion.div
+            key={activeTab} 
+            initial={{ opacity: 0, y: 20, scale: 0.95 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            exit={{ opacity: 0, y: -20, scale: 0.95 }}
+            transition={{ duration: 0.3 }}
+            className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6 mt-6"
+          >
+            {activeTab === "newcar" &&
+              (newCar.length === 0 ? (
+                <p className="col-span-full text-center text-gray-500">
+                  ไม่มีรถเข้าใหม่
                 </p>
-              </div>
-            ) : (
-              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
-                {newCar.map((car) => (
-                  <CarCard key={car.id} car={car} />
-                ))}
-              </div>
-            )}
-          </>
-        )}
+              ) : (
+                newCar.map((car) => <CarCard key={car.id} car={car} />)
+              ))}
 
-        {activeTab === "pplbookings" && (
-          <>
-            {mostBookings.length === 0 ? (
-              <div className="flex justify-center items-center h-[60vh]">
-                <p className="text-center text-gray-400 text-xl">
-                  ไม่มีข้อมูลรถ
+            {activeTab === "pplbookings" &&
+              (mostBookings.length === 0 ? (
+                <p className="col-span-full text-center text-gray-500">
+                  ไม่มีรถที่ถูกจอง
                 </p>
-              </div>
-            ) : (
-              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
-                {mostBookings.map((car) => (
-                  <CarCard key={car.id} car={car} />
-                ))}
-              </div>
-            )}
-          </>
-        )}
+              ) : (
+                mostBookings.map((car) => <CarCard key={car.id} car={car} />)
+              ))}
 
-        {activeTab === "pplfavorites" && (
-          <>
-            {mostFavorites.length === 0 ? (
-              <div className="flex justify-center items-center h-[60vh]">
-                <p className="text-center text-gray-400 text-xl">
-                  ไม่มีข้อมูลรถ
+            {activeTab === "pplfavorites" &&
+              (mostFavorites.length === 0 ? (
+                <p className="col-span-full text-center text-gray-500">
+                  ไม่มีรถที่ถูกใจ
                 </p>
-              </div>
-            ) : (
-              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
-                {mostFavorites.map((car) => (
-                  <CarCard key={car.id} car={car} />
-                ))}
-              </div>
-            )}
-          </>
-        )}
+              ) : (
+                mostFavorites.map((car) => <CarCard key={car.id} car={car} />)
+              ))}
+          </motion.div>
+        </AnimatePresence>
       </div>
 
-      {/* Modal แสดงรูปเต็ม */}
       <ImageModal />
     </>
   );

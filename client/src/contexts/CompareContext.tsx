@@ -77,3 +77,4 @@ export const useCompare = () => {
   if (!context) throw new Error("useCompare ต้องอยู่ใน CompareProvider");
   return context;
 };
+

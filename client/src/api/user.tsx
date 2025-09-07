@@ -104,15 +104,6 @@ export const getUserBooking = async () => {
   return res.data;
 };
 
-//ลบรายการจองทดลองขับ
-// export const removeBookingList = async (id: number) => {
-//   const res = await axiosInstance.delete(
-//     `/user/mybookings/${id}`,
-//     getAuthHeader()
-//   );
-//   return res.data;
-// };
-
 // ดูการเปรียบเทียบรถ
 export const getCompareUser = async () => {
   const res = await axiosInstance.get("/user/comparecar", getAuthHeader());

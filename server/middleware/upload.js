@@ -24,7 +24,7 @@ const storage = multer.diskStorage({
 const upload = multer({ storage });
 
 module.exports = { upload };
-// ✅ ตรวจสอบ MIME Type
+//  ตรวจสอบ MIME Type
 // const fileFilter = (req: Express.Request, file: Express.Multer.File, cb: multer.FileFilterCallback) => {
 //   const allowedTypes = ["image/jpeg", "image/png", "image/jpg"];
 //   if (allowedTypes.includes(file.mimetype)) {
@@ -34,7 +34,7 @@ module.exports = { upload };
 //   }
 // };
 
-// // ✅ สร้าง middleware อัปโหลดพร้อมตั้งขนาดไฟล์
+// //  สร้าง middleware อัปโหลดพร้อมตั้งขนาดไฟล์
 // export const upload = multer({
 //   storage,
 //   limits: { fileSize: 5 * 1024 * 1024 }, // จำกัดไฟล์ 5MB

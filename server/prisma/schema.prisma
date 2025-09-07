@@ -25,7 +25,7 @@ model User {
   favouriteCars FavouriteCar[]
   bookings      Booking[]
   compareCars   CompareCar[]
-  // resetPasswordTokens ResetPasswordToken[]
+  review        Review[]
   createdAt     DateTime       @default(now())
   updatedAt     DateTime       @updatedAt
 }
@@ -88,6 +88,30 @@ model CompareCar {
   @@unique([userId])
 }
 
+model SoldCar {
+  id           Int          @id @default(autoincrement())
+  carId        Int
+  brand        String
+  model        String
+  year         Int
+  fuel         String
+  price        Int
+  transmission Transmission
+  detail       String?      @db.VarChar(1000)
+  type         Type
+  soldAt       DateTime     @default(now())
+}
+
+model Review {
+  id     Int  @id @default(autoincrement())
+  userId Int
+  user   User @relation(fields: [userId], references: [id])
+  detail String
+  rating Int @default(0)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
 enum Role {
   ADMIN
   USER
@@ -118,11 +142,4 @@ enum BookingStatus {
   REJECTED
 }
 
-// model ResetPasswordToken {
-//   id        Int      @id @default(autoincrement())
-//   user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-//   userId    Int
-//   token     String   @unique
-//   expiresAt DateTime
-//   createdAt DateTime @default(now())
-// }
+
