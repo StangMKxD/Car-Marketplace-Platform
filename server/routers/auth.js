@@ -112,4 +112,11 @@ router.get(
   admin.getAdminDashboards
 );
 
+router.get(
+  "/admin/getpopularcarsbymonth",
+  authenticateToken,
+  authorizeRole("ADMIN"),
+  admin.getPopularCarsByMonth
+);
+
 module.exports = router;

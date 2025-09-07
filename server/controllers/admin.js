@@ -507,6 +507,55 @@ exports.getAdminDashboards = async (req, res) => {
   }
 };
 
+exports.getPopularCarsByMonth = async (req, res) => {
+  try {
+    const monthInt = parseInt(req.query.month, 10);
+if (isNaN(monthInt) || monthInt < 1 || monthInt > 12) {
+  return res.status(400).json({ message: "กรุณาส่งเดือนให้ถูกต้อง (1-12)" });
+}
+
+
+    const year = new Date().getFullYear();
+    const monthZeroBased = monthInt - 1;
+
+    // กำหนดเวลาแบบ UTC ชัดเจน
+    const startDate = new Date(Date.UTC(year, monthZeroBased, 1, 0, 0, 0, 0));
+    const endDate = new Date(Date.UTC(year, monthZeroBased + 1, 1, 0, 0, 0, 0));
+
+    const cars = await prisma.car.findMany({
+      select: {
+        id: true,
+        brand: true,
+        model: true,
+        bookings: {
+          where: { createdAt: { gte: startDate, lt: endDate } },
+          select: { id: true },
+        },
+        favouriteCars: {
+          where: { createdAt: { gte: startDate, lt: endDate } },
+          select: { id: true },
+        },
+      },
+    });
+
+    const carsWithTotal = cars.map(car => ({
+      id: car.id,
+      brand: car.brand,
+      model: car.model,
+      totalBookings: car.bookings.length,
+      totalFavorites: car.favouriteCars.length,
+      total: car.bookings.length + car.favouriteCars.length,
+    }));
+
+    const topCars = carsWithTotal.sort((a, b) => b.total - a.total).slice(0, 5);
+
+    res.json({ month: monthInt, cars: topCars });
+  } catch (err) {
+    console.error("Error fetching popular cars by month:", err);
+    res.status(500).json({ message: "เกิดข้อผิดพลาดในการดึงข้อมูลยอดนิยมรายเดือน" });
+  }
+};
+
 
 // stock of car by type
 exports.carStockStatus = async (req, res) => {

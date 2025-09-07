@@ -65,3 +65,9 @@ export const sellCar = async ( carId: number) => {
   const res = await axiosInstance.post('/cars/sell',{ carId }, getAuthHeader())
   return res.data
 }
+
+//getpopularcarnymonths
+export const getPopularCarsByMonth = async (month: number) => {
+  const res = await axiosInstance.get(`/admin/getpopularcarsbymonth?month=${month}`, getAuthHeader())
+  return res.data
+}

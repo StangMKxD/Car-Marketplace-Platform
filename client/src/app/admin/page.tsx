@@ -4,11 +4,13 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { BookingType, Cartype, Usertype } from "@/types";
 import { toast } from "react-toastify";
+
 import {
   addCar,
   adminDashboard,
   getAlert,
   getBookingList,
+  getPopularCarsByMonth,
   sellCar,
   userData,
 } from "@/api/admin";
@@ -43,8 +45,32 @@ interface AlertType {
   max: number;
 }
 
+interface CarType {
+  id: number;
+  brand: string;
+  model: string;
+  total: number;
+}
+
+const MONTHS = [
+  "มกราคม",
+  "กุมภาพันธ์",
+  "มีนาคม",
+  "เมษายน",
+  "พฤษภาคม",
+  "มิถุนายน",
+  "กรกฎาคม",
+  "สิงหาคม",
+  "กันยายน",
+  "ตุลาคม",
+  "พฤศจิกายน",
+  "ธันวาคม",
+];
+
 const AdminPage = () => {
   const router = useRouter();
+  const [month, setMonth] = useState<number>(new Date().getMonth());
+  const [loading, setLoading] = useState<boolean>(true);
   const [formData, setFormData] = useState<Cartype>({
     id: 0,
     brand: "",
@@ -72,7 +98,7 @@ const AdminPage = () => {
   const [totalApproved, setTotalApproved] = useState(0);
   const [totalRejected, setTotalRejected] = useState(0);
   const [totalSoldCars, setTotalSoldCars] = useState(0);
-  const [popularCars, setPopularCars] = useState<Cartype[]>([]);
+  // const [popularCars, setPopularCars] = useState<Cartype[]>([]);
   const [data, setData] = useState<
     { name: string; users: number; bookings: number }[]
   >([]);
@@ -132,6 +158,36 @@ const AdminPage = () => {
     }
   };
 
+  const loadPopularCars = async (monthIndex: number) => {
+    setLoading(true);
+    try {
+      const res = await getPopularCarsByMonth(monthIndex + 1);
+
+      console.log(res);
+
+      const topCars = res.cars
+        .map((car: any) => ({
+          ...car,
+          total: (car.totalBookings || 0) + (car.totalFavorites || 0),
+        }))
+        .sort((a: any, b: any) => b.total - a.total)
+        .slice(0, 5);
+      setCars(topCars);
+    } catch (err) {
+      console.error(err);
+      setCars([]);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    loadPopularCars(month);
+  }, [month]);
+
+  const handlePrev = () => setMonth((prev) => (prev === 0 ? 11 : prev - 1));
+  const handleNext = () => setMonth((prev) => (prev === 11 ? 0 : prev + 1));
+
   const loadAdminDashboardStats = async () => {
     try {
       const res = await adminDashboard();
@@ -143,7 +199,7 @@ const AdminPage = () => {
       setTotalBookings(res.totalBookingsCars);
       setTotalPrice(res.totalPrice);
       setTotalSold(res.totalSold);
-      setPopularCars(res.popularCars);
+      // setPopularCars(res.popularCars);
       setData(res.monthyStats);
       setTotalApproved(res.approvedCount);
       setTotalRejected(res.rejectedCount);
@@ -592,7 +648,7 @@ const AdminPage = () => {
                   </ResponsiveContainer>
                 </div>
               </div>
-              <div className="flex p-4 justify-around space-x-4">
+              <div className="flex p-4 justify-around space-x-4 ">
                 <div className="p-4 w-[800px] shadow hover:shadow-lg rounded-lg bg-white">
                   <h2 className="text-xl font-bold mb-4 text-center">
                     จำนวนผู้ใช้ใหม่และการจองทดลองขับในแต่ละเดือน
@@ -633,7 +689,67 @@ const AdminPage = () => {
                     )}
                   </ResponsiveContainer>
                 </div>
-                <div className="max-h-[500px] w-[800px] overflow-y-auto shadow hover:shadow-lg rounded-lg bg-white p-4">
+
+                <div className="p-4 w-full mx-auto shadow hover:shadow-lg rounded-lg bg-white">
+                  <h2 className="text-xl font-bold mb-4 text-center">
+                    Top 5 รถยอดนิยม
+                  </h2>
+
+                  <div className="flex justify-center items-center mb-4 gap-4 ">
+                    <button
+                      onClick={handlePrev}
+                      className="px-3 py-1 bg-gray-200 rounded hover:bg-gray-300"
+                    >
+                      ‹
+                    </button>
+                    <span className="font-semibold">{MONTHS[month]}</span>
+                    <button
+                      onClick={handleNext}
+                      className="px-3 py-1 bg-gray-200 rounded hover:bg-gray-300"
+                    >
+                      ›
+                    </button >
+                  </div>
+
+                    
+                  <ResponsiveContainer width="100%" height={400}>
+                    {loading ? (
+                      <p className="text-center mt-20">กำลังโหลดข้อมูล...</p>
+                    ) : cars.length > 0 ? (
+                      <BarChart
+                      layout="vertical"
+                      data={cars.map((car) => ({
+                        ...car,
+                        label: `${car.brand} ${car.model}`,
+                      }))}
+                      margin={{ top: 20, right: 25, left: 20, bottom: 20 }}
+                      >
+                        <XAxis type="number" />
+                        <YAxis
+                          type="category"
+                          dataKey="label"
+                          width={200}
+                          />{" "}
+                        {/* ใช้ label แทน */}
+                        <Tooltip
+                          formatter={(value) => [value, "จำนวนทั้งหมด"]}
+                          />
+                        <Legend />
+                        <Bar
+                          dataKey="total"
+                          barSize={22}
+                          fill="#0d6efd"
+                          name="รวมยอด"
+                          label={{ position: "right" }}
+                          />
+                      </BarChart>
+                    ) : (
+                      <p className="text-center mt-20">ไม่มีข้อมูลในเดือนนี้</p>
+                    )}
+                  </ResponsiveContainer>
+                      
+                </div>
+                {/* <div className="max-h-[500px] w-[800px] overflow-y-auto shadow hover:shadow-lg rounded-lg bg-white p-4">
                   <h2 className="text-2xl font-bold mb-4 text-center">
                     จำนวนรถยอดนิยมแต่ละสัปดาห์
                   </h2>
@@ -697,7 +813,7 @@ const AdminPage = () => {
                       ))}
                     </tbody>
                   </table>
-                </div>
+                </div> */}
               </div>
             </>
           )}
@@ -707,13 +823,12 @@ const AdminPage = () => {
               <AnimatePresence>
                 {showForm && (
                   <motion.div
-                    initial={{ height: 0 }} 
-                    animate={{ height: "auto" }} 
-                    exit={{ height: 0 }} 
+                    initial={{ height: 0 }}
+                    animate={{ height: "auto" }}
+                    exit={{ height: 0 }}
                     transition={{ duration: 0.5, ease: "easeInOut" }}
                     className="overflow-hidden w-full space-y-2 mb-6 p-2 shadow"
                   >
-                 
                     <div className="flex items-center justify-center">
                       <div className=" my-4">
                         <h2 className="flex ml-4 mb-1 font-semibold">
@@ -819,7 +934,6 @@ const AdminPage = () => {
                         ยืนยันเพิ่มรถ
                       </button>
                     </div>
-                
                   </motion.div>
                 )}
               </AnimatePresence>
